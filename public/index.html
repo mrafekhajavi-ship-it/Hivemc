@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>ویس‌چت پاکت‌ماین</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+        body { font-family: sans-serif; background: #1e1e2e; color: #fff; text-align: center; padding-top: 50px; }
+        input, button { padding: 10px 15px; border-radius: 6px; border: none; font-size: 16px; margin: 5px; }
+        button { background: #00b894; color: white; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h2>ویس چت سرور</h2>
+    <div id="login-box">
+        <input type="text" id="username" placeholder="نام داخل بازی شما (گیمرتگ)">
+        <button onclick="startVoice()">اتصال به صدا</button>
+    </div>
+    <p id="status">هنوز متصل نشده‌اید.</p>
+
+    <script>
+        const socket = io();
+        let myUsername = "";
+        let localStream = null;
+        let peers = {}; 
+        let gainNodes = {}; 
+        let audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        let allPositions = {};
+
+        async function startVoice() {
+            myUsername = document.getElementById('username').value.trim();
+            if (!myUsername) return alert("نام بازیکن را وارد کنید");
+
+            document.getElementById('status').innerText = "در حال دریافت دسترسی میکروفون...";
+
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+                document.getElementById('login-box').style.display = 'none';
+                document.getElementById('status').innerText = "متصل شدید! صفحه را نبندید.";
+
+                socket.emit('join', myUsername);
+            } catch (err) {
+                alert("دسترسی به میکروفون رد شد یا خطا داد!");
+            }
+        }
+
+        socket.on('positions_update', (positions) => {
+            allPositions = positions;
+            calculateDistances();
+        });
+
+        function calculateDistances() {
+            if (!myUsername || !allPositions[myUsername]) return;
+            const me = allPositions[myUsername];
+
+            for (const [targetName, targetPos] of Object.entries(allPositions)) {
+                if (targetName === myUsername || !targetPos.socketId) continue;
+                const gainNode = gainNodes[targetPos.socketId];
+                if (!gainNode) continue;
+
+                if (me.world !== targetPos.world) {
+                    gainNode.gain.value = 0;
+                    continue;
+                }
+
+                const dx = me.x - targetPos.x;
+                const dy = me.y - targetPos.y;
+                const dz = me.z - targetPos.z;
+                const distance = Math.sqrt(dx*dx + dy*dy + dz*dz);
+
+                const MAX_DISTANCE = 25.0; // حداکثر برد صدا (بلاک)
+
+                if (distance > MAX_DISTANCE) {
+                    gainNode.gain.value = 0; 
+                } else {
+                    gainNode.gain.value = (1 - (distance / MAX_DISTANCE));
+                }
+            }
+        }
+
+        socket.on('user_joined', async ({ socketId }) => {
+            const pc = createPeerConnection(socketId);
+            peers[socketId] = pc;
+            const offer = await pc.createOffer();
+            await pc.setLocalDescription(offer);
+            socket.emit('signal', { targetSocketId: socketId, signalData: offer });
+        });
+
+        socket.on('signal', async ({ senderSocketId, signalData }) => {
+            let pc = peers[senderSocketId];
+            if (!pc) {
+                pc = createPeerConnection(senderSocketId);
+                peers[senderSocketId] = pc;
+            }
+
+            if (signalData.type === 'offer') {
+                await pc.setRemoteDescription(new RTCSessionDescription(signalData));
+                const answer = await pc.createAnswer();
+                await pc.setLocalDescription(answer);
+                socket.emit('signal', { targetSocketId: senderSocketId, signalData: answer });
+            } else if (signalData.type === 'answer') {
+                await pc.setRemoteDescription(new RTCSessionDescription(signalData));
+            } else if (signalData.candidate) {
+                await pc.addIceCandidate(new RTCIceCandidate(signalData));
+            }
+        });
+
+        function createPeerConnection(remoteSocketId) {
+            const pc = new RTCPeerConnection({
+                iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+            });
+
+            localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
+
+            pc.ontrack = (event) => {
+                const source = audioContext.createMediaStreamSource(event.streams[0]);
+                const gainNode = audioContext.createGain();
+                source.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+
+                gainNodes[remoteSocketId] = gainNode;
+            };
+
+            pc.onicecandidate = (event) => {
+                if (event.candidate) {
+                    socket.emit('signal', { targetSocketId: remoteSocketId, signalData: event.candidate });
+                }
+            };
+
+            return pc;
+        }
+    </script>
+</body>
+</html>
