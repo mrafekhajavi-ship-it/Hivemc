@@ -2,137 +2,69 @@
 <html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>ویس‌چت پاکت‌ماین</title>
+    <title>تست ویس‌چت ساده</title>
     <script src="/socket.io/socket.io.js"></script>
     <style>
-        body { font-family: sans-serif; background: #1e1e2e; color: #fff; text-align: center; padding-top: 30px; }
-        input, button { padding: 10px 15px; border-radius: 6px; border: none; font-size: 16px; margin: 5px; }
+        body { font-family: sans-serif; background: #1e1e2e; color: #fff; text-align: center; padding-top: 50px; }
+        input, button { padding: 12px 20px; border-radius: 6px; border: none; font-size: 16px; margin: 5px; }
         button { background: #00b894; color: white; cursor: pointer; }
-        button.danger { background: #d63031; }
-        .control-panel { margin-top: 20px; display: none; }
+        #controls { display: none; margin-top: 20px; }
     </style>
 </head>
 <body>
-    <h2>ویس چت سرور</h2>
+    <h2>تست اتصال ویس‌چت</h2>
     
-    <!-- ترفند جلوگیری از خوابیدن تب در پس‌زمینه اندروید -->
-    <audio id="keepAliveAudio" loop autoplay playsinline src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA="></audio>
-
     <div id="login-box">
-        <input type="text" id="username" placeholder="نام داخل بازی شما (گیمرتگ)">
-        <button onclick="startVoice()">اتصال به صدا</button>
+        <input type="text" id="username" placeholder="نام خود را وارد کنید">
+        <button onclick="startVoice()">ورود به ویس</button>
     </div>
     
-    <p id="status">هنوز متصل نشده‌اید.</p>
+    <p id="status">متصل نشده‌اید.</p>
 
-    <!-- پنل کنترل صدا بعد از اتصال -->
-    <div id="controls" class="control-panel">
+    <div id="controls">
         <button id="mute-btn" onclick="toggleMute()">بستن میکروفون (Mute)</button>
-        <button id="deafen-btn" class="danger" onclick="toggleDeafen()">قطع صدای بازیکنان</button>
     </div>
+
+    <!-- تگ صوتی برای پخش صدای بقیه کاربران -->
+    <div id="audio-container"></div>
 
     <script>
         const socket = io();
         let myUsername = "";
         let localStream = null;
-        let peers = {}; 
-        let gainNodes = {}; 
-        let audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        let allPositions = {};
-
+        let peers = {};
         let isMuted = false;
-        let isDeafened = false;
 
         async function startVoice() {
             myUsername = document.getElementById('username').value.trim();
-            if (!myUsername) return alert("نام بازیکن را وارد کنید");
+            if (!myUsername) return alert("لطفاً نام خود را وارد کنید");
 
-            document.getElementById('status').innerText = "در حال دریافت دسترسی میکروفون...";
+            document.getElementById('status').innerText = "در حال گرفتن دسترسی میکروفون...";
 
             try {
-                // پخش فایل صوتی بی‌صدا برای جلوگیری از قطع شدن کروم در پس‌زمینه
-                const audioEl = document.getElementById('keepAliveAudio');
-                audioEl.play().catch(e => console.log(e));
-
                 localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
                 
                 document.getElementById('login-box').style.display = 'none';
-                document.getElementById('status').innerText = "متصل شدید! حالا وارد بازی شوید.";
+                document.getElementById('status').innerText = `متصل شدید به عنوان: ${myUsername}`;
                 document.getElementById('controls').style.display = 'block';
 
                 socket.emit('join', myUsername);
             } catch (err) {
-                alert("دسترسی به میکروفون رد شد یا خطا داد!");
+                alert("خطا در دسترسی به میکروفون: " + err.message);
             }
         }
 
-        // دکمه قطع/وصل میکروفون خودتان
         function toggleMute() {
             if (!localStream) return;
             isMuted = !isMuted;
             localStream.getAudioTracks()[0].enabled = !isMuted;
-            
             const btn = document.getElementById('mute-btn');
-            if (isMuted) {
-                btn.style.background = "#d63031";
-                btn.innerText = "باز کردن میکروفون";
-            } else {
-                btn.style.background = "#00b894";
-                btn.innerText = "بستن میکروفون (Mute)";
-            }
+            btn.style.background = isMuted ? "#d63031" : "#00b894";
+            btn.innerText = isMuted ? "باز کردن میکروفون" : "بستن میکروفون (Mute)";
         }
 
-        // دکمه قطع/وصل صدای کل بازیکنان اطراف
-        function toggleDeafen() {
-            isDeafened = !isDeafened;
-            const btn = document.getElementById('deafen-btn');
-            
-            if (isDeafened) {
-                btn.style.background = "#00b894";
-                btn.innerText = "وصل کردن صدای بازیکنان";
-            } else {
-                btn.style.background = "#d63031";
-                btn.innerText = "قطع صدای بازیکنان";
-            }
-            calculateDistances();
-        }
-
-        socket.on('positions_update', (positions) => {
-            allPositions = positions;
-            calculateDistances();
-        });
-
-        function calculateDistances() {
-            if (!myUsername || !allPositions[myUsername]) return;
-            const me = allPositions[myUsername];
-
-            for (const [targetName, targetPos] of Object.entries(allPositions)) {
-                if (targetName === myUsername || !targetPos.socketId) continue;
-                const gainNode = gainNodes[targetPos.socketId];
-                if (!gainNode) continue;
-
-                // اگر دکمه قطع صدا زده شده باشد، صدا صفر می‌شود
-                if (isDeafened || me.world !== targetPos.world) {
-                    gainNode.gain.value = 0;
-                    continue;
-                }
-
-                const dx = me.x - targetPos.x;
-                const dy = me.y - targetPos.y;
-                const dz = me.z - targetPos.z;
-                const distance = Math.sqrt(dx*dx + dy*dy + dz*dz);
-
-                const MAX_DISTANCE = 25.0; // حداکثر برد صدا (بلاک)
-
-                if (distance > MAX_DISTANCE) {
-                    gainNode.gain.value = 0; 
-                } else {
-                    gainNode.gain.value = (1 - (distance / MAX_DISTANCE));
-                }
-            }
-        }
-
-        socket.on('user_joined', async ({ socketId }) => {
+        socket.on('user_joined', async ({ username, socketId }) => {
+            console.log("User joined:", username);
             const pc = createPeerConnection(socketId);
             peers[socketId] = pc;
             const offer = await pc.createOffer();
@@ -159,6 +91,13 @@
             }
         });
 
+        socket.on('user_left', (socketId) => {
+            if (peers[socketId]) {
+                peers[socketId].close();
+                delete peers[socketId];
+            }
+        });
+
         function createPeerConnection(remoteSocketId) {
             const pc = new RTCPeerConnection({
                 iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
@@ -167,12 +106,12 @@
             localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
 
             pc.ontrack = (event) => {
-                const source = audioContext.createMediaStreamSource(event.streams[0]);
-                const gainNode = audioContext.createGain();
-                source.connect(gainNode);
-                gainNode.connect(audioContext.destination);
-
-                gainNodes[remoteSocketId] = gainNode;
+                console.log("Audio stream received from peer!");
+                const audio = document.createElement('audio');
+                audio.srcObject = event.streams[0];
+                audio.autoplay = true;
+                audio.controls = false; // می‌توانید برای تست true بگذارید تا پلیر صدا را ببیند
+                document.getElementById('audio-container').appendChild(audio);
             };
 
             pc.onicecandidate = (event) => {
