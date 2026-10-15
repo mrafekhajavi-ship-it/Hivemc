@@ -64,18 +64,20 @@
     }
 
     // پخش صدای بی‌صدا برای زنده نگه‌داشتن تب در پس‌زمینه اندروید
-    function startKeepAlive() {
-        try {
-            const ctx = new (window.AudioContext || window.webkitAudioContext)();
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-            gain.gain.value = 0.001; // عملاً نامحسوس
-            osc.connect(gain);
-            gain.connect(ctx.destination);
-            osc.start();
-        } catch(e) {}
+        function startKeepAlive() {
+        const audio = document.getElementById('keepAliveAudio');
+        // فایل صوتی با حجم ناچیز و کاملاً بی‌صدا (سکوت مطلق)
+        audio.src = "https://raw.githubusercontent.com/anars/blank-audio/master/500-milliseconds-of-silence.mp3";
+        audio.loop = true;
+        audio.volume = 0.01; // برای اطمینان از نامحسوس بودن
+        audio.play().then(() => {
+            log('سرویس پس‌زمینه صوتی فعال شد.');
+        }).catch(e => {
+            log('خطا در پخش پس‌زمینه: ' + e.message);
+        });
     }
 
+        
     document.getElementById('joinBtn').addEventListener('click', async () => {
         const inputVal = document.getElementById('usernameInput').value.trim();
         if (!inputVal) return alert('لطفاً نام را وارد کنید');
