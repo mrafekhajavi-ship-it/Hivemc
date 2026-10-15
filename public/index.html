@@ -5,18 +5,31 @@
     <title>ویس‌چت پاکت‌ماین</title>
     <script src="/socket.io/socket.io.js"></script>
     <style>
-        body { font-family: sans-serif; background: #1e1e2e; color: #fff; text-align: center; padding-top: 50px; }
+        body { font-family: sans-serif; background: #1e1e2e; color: #fff; text-align: center; padding-top: 30px; }
         input, button { padding: 10px 15px; border-radius: 6px; border: none; font-size: 16px; margin: 5px; }
         button { background: #00b894; color: white; cursor: pointer; }
+        button.danger { background: #d63031; }
+        .control-panel { margin-top: 20px; display: none; }
     </style>
 </head>
 <body>
     <h2>ویس چت سرور</h2>
+    
+    <!-- ترفند جلوگیری از خوابیدن تب در پس‌زمینه اندروید -->
+    <audio id="keepAliveAudio" loop autoplay playsinline src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA="></audio>
+
     <div id="login-box">
         <input type="text" id="username" placeholder="نام داخل بازی شما (گیمرتگ)">
         <button onclick="startVoice()">اتصال به صدا</button>
     </div>
+    
     <p id="status">هنوز متصل نشده‌اید.</p>
+
+    <!-- پنل کنترل صدا بعد از اتصال -->
+    <div id="controls" class="control-panel">
+        <button id="mute-btn" onclick="toggleMute()">بستن میکروفون (Mute)</button>
+        <button id="deafen-btn" class="danger" onclick="toggleDeafen()">قطع صدای بازیکنان</button>
+    </div>
 
     <script>
         const socket = io();
@@ -27,6 +40,9 @@
         let audioContext = new (window.AudioContext || window.webkitAudioContext)();
         let allPositions = {};
 
+        let isMuted = false;
+        let isDeafened = false;
+
         async function startVoice() {
             myUsername = document.getElementById('username').value.trim();
             if (!myUsername) return alert("نام بازیکن را وارد کنید");
@@ -34,14 +50,51 @@
             document.getElementById('status').innerText = "در حال دریافت دسترسی میکروفون...";
 
             try {
+                // پخش فایل صوتی بی‌صدا برای جلوگیری از قطع شدن کروم در پس‌زمینه
+                const audioEl = document.getElementById('keepAliveAudio');
+                audioEl.play().catch(e => console.log(e));
+
                 localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+                
                 document.getElementById('login-box').style.display = 'none';
-                document.getElementById('status').innerText = "متصل شدید! صفحه را نبندید.";
+                document.getElementById('status').innerText = "متصل شدید! حالا وارد بازی شوید.";
+                document.getElementById('controls').style.display = 'block';
 
                 socket.emit('join', myUsername);
             } catch (err) {
                 alert("دسترسی به میکروفون رد شد یا خطا داد!");
             }
+        }
+
+        // دکمه قطع/وصل میکروفون خودتان
+        function toggleMute() {
+            if (!localStream) return;
+            isMuted = !isMuted;
+            localStream.getAudioTracks()[0].enabled = !isMuted;
+            
+            const btn = document.getElementById('mute-btn');
+            if (isMuted) {
+                btn.style.background = "#d63031";
+                btn.innerText = "باز کردن میکروفون";
+            } else {
+                btn.style.background = "#00b894";
+                btn.innerText = "بستن میکروفون (Mute)";
+            }
+        }
+
+        // دکمه قطع/وصل صدای کل بازیکنان اطراف
+        function toggleDeafen() {
+            isDeafened = !isDeafened;
+            const btn = document.getElementById('deafen-btn');
+            
+            if (isDeafened) {
+                btn.style.background = "#00b894";
+                btn.innerText = "وصل کردن صدای بازیکنان";
+            } else {
+                btn.style.background = "#d63031";
+                btn.innerText = "قطع صدای بازیکنان";
+            }
+            calculateDistances();
         }
 
         socket.on('positions_update', (positions) => {
@@ -58,7 +111,8 @@
                 const gainNode = gainNodes[targetPos.socketId];
                 if (!gainNode) continue;
 
-                if (me.world !== targetPos.world) {
+                // اگر دکمه قطع صدا زده شده باشد، صدا صفر می‌شود
+                if (isDeafened || me.world !== targetPos.world) {
                     gainNode.gain.value = 0;
                     continue;
                 }
