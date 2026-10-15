@@ -1,262 +1,358 @@
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ویس‌چت ماینکرفت</title>
-    <script src="/socket.io/socket.io.js"></script>
-    <style>
-        body { font-family: sans-serif; background: #12121e; color: #fff; text-align: center; padding: 20px; margin: 0; }
-        .card { background: #1e1e2f; max-width: 450px; margin: 0 auto; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-        input, button { padding: 10px 14px; border-radius: 6px; border: none; font-size: 15px; margin: 6px; }
-        input { background: #2d2d44; color: #fff; width: 80%; text-align: center; }
-        button { background: #00b894; color: white; cursor: pointer; font-weight: bold; }
-        button.danger { background: #d63031; }
-        #statusDiv { margin: 15px 0; font-size: 14px; color: #81ecec; min-height: 40px; }
-        #logBox { background: #0b0b14; color: #a4b0be; font-family: monospace; font-size: 11px; text-align: left; direction: ltr; padding: 10px; border-radius: 6px; height: 120px; overflow-y: auto; margin-top: 15px; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Minecraft Proximity Voice Chat</title>
+  
+  <!-- کتابخانه برای استایل سریع ترمینال -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- کتابخانه سوکت برای اتصال به سرور رندر -->
+  <script src="/socket.io/socket.io.js"></script>
+
+  <style>
+    body {
+      background-color: #0f1117;
+      color: #e2e8f0;
+      font-family: system-ui, -apple-system, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .card {
+      background: #1a1d24;
+      border: 1px solid #2d3748;
+      border-radius: 16px;
+      padding: 24px;
+      width: 100%;
+      max-width: 480px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .input-box {
+      width: 90%;
+      padding: 12px 16px;
+      background: #0f1117;
+      border: 1px solid #4a5568;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 15px;
+      outline: none;
+      text-align: center;
+      margin-top: 15px;
+      transition: border-color 0.2s;
+    }
+
+    .input-box:focus {
+      border-color: #a855f7;
+    }
+
+    /* استایل دکمه نئونی چرخشی انتخابی شما */
+    .button {
+      position: relative;
+      width: 160px;
+      height: 46px;
+      background-color: #000;
+      display: inline-flex;
+      align-items: center;
+      color: white;
+      font-weight: bold;
+      font-size: 15px;
+      justify-content: center;
+      border: none;
+      padding: 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 25px;
+      transition: all 0.3s ease;
+    }
+
+    .button::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      left: -4px;
+      top: -1px;
+      margin: auto;
+      width: 168px;
+      height: 54px;
+      border-radius: 10px;
+      background: linear-gradient(-45deg, #e81cff 0%, #40c9ff 100% );
+      z-index: -10;
+      pointer-events: none;
+      transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .button::after {
+      content: "";
+      z-index: -1;
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(-45deg, #fc00ff 0%, #00dbde 100% );
+      transform: translate3d(0, 0, 0) scale(0.95);
+      filter: blur(20px);
+    }
+
+    .button:hover::after {
+      filter: blur(30px);
+    }
+
+    .button:hover::before {
+      transform: rotate(-180deg);
+    }
+
+    .button:active::before {
+      transform: scale(0.7);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 9999px;
+      font-size: 12px;
+      background: #2b3245;
+      color: #93c5fd;
+      margin-top: 10px;
+    }
+  </style>
 </head>
 <body>
 
-<div class="card">
-    <h2>ویس‌چت پاکت‌ماین</h2>
+  <!-- کارت اصلی ورود -->
+  <div class="card" id="loginSection">
+    <h1 style="font-size: 22px; margin-bottom: 6px; font-weight: bold;">ویس‌چت ماینکرفت</h1>
+    <p style="font-size: 13px; color: #a0aec0;">نام کاربری خود داخل سرور را وارد کنید</p>
     
-    <div id="loginSection">
-        <p>نام دقیق داخل بازی خود را وارد کنید:</p>
-        <input type="text" id="usernameInput" placeholder="مثال: Steve"><br>
-        <button id="joinBtn">ورود به ویس‌چت</button>
+    <input type="text" id="usernameInput" class="input-box" placeholder="مثلاً: Steve" autocomplete="off" />
+    <br>
+    <button id="joinBtn" class="button">ورود به ویس‌چت</button>
+  </div>
+
+  <!-- کارت وضعیت بعد از ورود -->
+  <div class="card" id="voiceSection" style="display: none;">
+    <h2 id="userGreeting" style="font-size: 18px; font-weight: bold; color: #4ade80;">متصل شدید</h2>
+    <div id="statusDiv" class="badge">در انتظار دریافت مختصات از بازی...</div>
+
+    <div style="margin-top: 20px; text-align: right;">
+      <h3 style="font-size: 14px; color: #cbd5e1; margin-bottom: 8px;">افراد متصل:</h3>
+      <ul id="peersList" style="list-style: none; padding: 0; margin: 0; font-size: 13px; color: #94a3b8;">
+        <li>هیچ بازیکنی متصل نیست</li>
+      </ul>
     </div>
+  </div>
 
-    <div id="voiceSection" style="display: none;">
-        <h4 id="userGreeting"></h4>
-        <div id="statusDiv">در حال اتصال...</div>
-        <div>
-            <button id="muteBtn">قطع میکروفون (Mute)</button>
-            <button id="deafenBtn">قطع صدا (Deafen)</button>
-        </div>
-        <div id="logBox"></div>
+  <!-- ترمینال لاگ‌ها (انتخابی شما) -->
+  <aside class="bg-black text-white p-5 rounded-xl w-full max-w-lg font-mono shadow-2xl border border-neutral-800 my-2 text-left" dir="ltr">
+    <div class="flex justify-between items-center pb-2 border-b border-neutral-800">
+      <div class="flex space-x-2">
+        <div class="w-3 h-3 rounded-full bg-red-500"></div>
+        <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+        <div class="w-3 h-3 rounded-full bg-green-500"></div>
+      </div>
+      <p class="text-xs text-neutral-400 font-semibold tracking-wider">CONSOLE LOGS</p>
     </div>
-</div>
+    
+    <div id="logs" class="mt-3 text-xs leading-relaxed space-y-1 max-h-40 overflow-y-auto">
+      <p class="text-neutral-500">// آماده به کار...</p>
+    </div>
+  </aside>
 
-<audio id="keepAliveAudio" loop style="display:none;"></audio>
-
-<script>
+  <!-- اسکریپت اصلی و هندل کردن صدا -->
+  <script>
     const socket = io();
-    const config = {
-        iceServers: [
-            { urls: 'stun:stun.l.google.com:19302' },
-            { urls: 'stun:stun1.l.google.com:19302' }
-        ]
-    };
-
     let localStream = null;
     let username = '';
-    const peers = {}; // socketId -> RTCPeerConnection
-    const peersAudio = {}; // username -> HTMLAudioElement
-    const socketToUser = {}; // socketId -> username
+    const peerConnections = {};
+    const peersAudio = {};
+    const MAX_DISTANCE = 25.0;
 
-    const logBox = document.getElementById('logBox');
+    const rtcConfig = {
+      iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+    };
+
     function log(msg) {
-        const item = document.createElement('div');
-        item.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
-        logBox.appendChild(item);
-        logBox.scrollTop = logBox.scrollHeight;
+      const logsDiv = document.getElementById('logs');
+      if (!logsDiv) return;
+      const p = document.createElement('p');
+      p.className = 'text-green-400';
+      p.innerHTML = `<span class="text-neutral-500">[${new Date().toLocaleTimeString()}]</span> <span class="text-yellow-400">$</span> ${msg}`;
+      logsDiv.appendChild(p);
+      logsDiv.scrollTop = logsDiv.scrollHeight;
     }
 
-    // پخش صدای بی‌صدا برای زنده نگه‌داشتن تب در پس‌زمینه اندروید
-        function startKeepAlive() {
-        const audio = document.getElementById('keepAliveAudio');
-        // فایل صوتی با حجم ناچیز و کاملاً بی‌صدا (سکوت مطلق)
-        audio.src = "https://raw.githubusercontent.com/anars/blank-audio/master/500-milliseconds-of-silence.mp3";
-        audio.loop = true;
-        audio.volume = 0.01; // برای اطمینان از نامحسوس بودن
-        audio.play().then(() => {
-            log('سرویس پس‌زمینه صوتی فعال شد.');
-        }).catch(e => {
-            log('خطا در پخش پس‌زمینه: ' + e.message);
-        });
+    // پخش کننده بی‌صدا برای زنده نگه‌داشتن تب در گوشی
+    function startKeepAlive() {
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      gain.gain.value = 0.00001; 
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
     }
 
-        
     document.getElementById('joinBtn').addEventListener('click', async () => {
-        const inputVal = document.getElementById('usernameInput').value.trim();
-        if (!inputVal) return alert('لطفاً نام را وارد کنید');
+      const inputVal = document.getElementById('usernameInput').value.trim();
+      if (!inputVal) return alert('لطفاً نام بازیکن را وارد کنید!');
 
-        username = inputVal.toLowerCase();
+      username = inputVal.toLowerCase();
 
-        try {
-            localStream = await navigator.mediaDevices.getUserMedia({ 
-    audio: {
-        echoCancellation: true,
-        noiseSuppression: true,
-        autoGainControl: true
-    }, 
-    video: false 
-});
+      try {
+        localStream = await navigator.mediaDevices.getUserMedia({ 
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true
+          }, 
+          video: false 
+        });
+        log('میکروفون متصل شد (حذف اکو فعال است)');
+      } catch (err) {
+        alert('دسترسی به میکروفون رد شد!');
+        log('خطای میکروفون: ' + err.message);
+        return;
+      }
 
-            log('میکروفون متصل شد.');
-        } catch (err) {
-            alert('دسترسی به میکروفون داده نشد یا مسدود است!');
-            log('خطای میکروفون: ' + err.message);
-            return;
+      startKeepAlive();
+      document.getElementById('loginSection').style.display = 'none';
+      document.getElementById('voiceSection').style.display = 'block';
+      document.getElementById('userGreeting').innerText = `بازیکن: ${inputVal}`;
+
+      socket.emit('join_voice', { username: username });
+    });
+
+    socket.on('user_list', (users) => {
+      const list = document.getElementById('peersList');
+      list.innerHTML = '';
+      users.forEach(u => {
+        if (u !== username) {
+          const li = document.createElement('li');
+          li.innerText = '• ' + u;
+          list.appendChild(li);
         }
-
-        startKeepAlive();
-        document.getElementById('loginSection').style.display = 'none';
-        document.getElementById('voiceSection').style.display = 'block';
-        document.getElementById('userGreeting').innerText = `بازیکن: ${inputVal}`;
-
-        socket.emit('join_voice', { username: username });
+      });
+      if (list.children.length === 0) {
+        list.innerHTML = '<li>هیچ بازیکنی متصل نیست</li>';
+      }
     });
 
-    socket.on('user_joined', async ({ socketId, username: remoteUser }) => {
-        log(`کاربر وارد شد: ${remoteUser}`);
-        socketToUser[socketId] = remoteUser.toLowerCase();
-        
-        const pc = createPeerConnection(socketId, remoteUser.toLowerCase());
-        peers[socketId] = pc;
+    socket.on('user_joined', async ({ id, username: remoteUser }) => {
+      log(`کاربر وارد شد: ${remoteUser}`);
+      const pc = createPeerConnection(id, remoteUser);
+      peerConnections[id] = pc;
 
-        localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
+      localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
 
-        const offer = await pc.createOffer();
-        await pc.setLocalDescription(offer);
-        socket.emit('offer', { target: socketId, sdp: offer });
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+      socket.emit('offer', { target: id, offer: offer });
     });
 
-    socket.on('offer', async ({ sender, sdp, username: remoteUser }) => {
-        log(`دریافت Offer از: ${remoteUser}`);
-        socketToUser[sender] = remoteUser.toLowerCase();
+    socket.on('offer', async ({ sender, offer, username: remoteUser }) => {
+      const pc = createPeerConnection(sender, remoteUser);
+      peerConnections[sender] = pc;
 
-        const pc = createPeerConnection(sender, remoteUser.toLowerCase());
-        peers[sender] = pc;
+      localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
 
-        localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
+      await pc.setRemoteDescription(new RTCSessionDescription(offer));
+      const answer = await pc.createAnswer();
+      await pc.setLocalDescription(answer);
 
-        await pc.setRemoteDescription(new RTCSessionDescription(sdp));
-        const answer = await pc.createAnswer();
-        await pc.setLocalDescription(answer);
-
-        socket.emit('answer', { target: sender, sdp: answer });
+      socket.emit('answer', { target: sender, answer: answer });
     });
 
-    socket.on('answer', async ({ sender, sdp }) => {
-        log(`اتصال با سوکت ${sender} تأیید شد.`);
-        const pc = peers[sender];
-        if (pc) {
-            await pc.setRemoteDescription(new RTCSessionDescription(sdp));
-        }
+    socket.on('answer', async ({ sender, answer }) => {
+      const pc = peerConnections[sender];
+      if (pc) {
+        await pc.setRemoteDescription(new RTCSessionDescription(answer));
+      }
     });
 
     socket.on('ice_candidate', async ({ sender, candidate }) => {
-        const pc = peers[sender];
-        if (pc && candidate) {
-            await pc.addIceCandidate(new RTCIceCandidate(candidate));
-        }
+      const pc = peerConnections[sender];
+      if (pc && candidate) {
+        await pc.addIceCandidate(new RTCIceCandidate(candidate));
+      }
     });
 
-    socket.on('user_left', (socketId) => {
-        const remoteUser = socketToUser[socketId];
-        log(`کاربر خارج شد: ${remoteUser || socketId}`);
-        if (peers[socketId]) {
-            peers[socketId].close();
-            delete peers[socketId];
-        }
-        if (remoteUser && peersAudio[remoteUser]) {
-            peersAudio[remoteUser].pause();
-            peersAudio[remoteUser].remove();
-            delete peersAudio[remoteUser];
-        }
-        delete socketToUser[socketId];
+    socket.on('user_left', ({ id, username: remoteUser }) => {
+      log(`کاربر خارج شد: ${remoteUser}`);
+      if (peerConnections[id]) {
+        peerConnections[id].close();
+        delete peerConnections[id];
+      }
+      if (peersAudio[remoteUser]) {
+        peersAudio[remoteUser].pause();
+        delete peersAudio[remoteUser];
+      }
     });
 
-    function createPeerConnection(remoteSocketId, remoteUsername) {
-        const pc = new RTCPeerConnection(config);
+    function createPeerConnection(targetId, targetUsername) {
+      const pc = new RTCPeerConnection(rtcConfig);
 
-        pc.onicecandidate = (event) => {
-            if (event.candidate) {
-                socket.emit('ice_candidate', { target: remoteSocketId, candidate: event.candidate });
-            }
-        };
+      pc.onicecandidate = (e) => {
+        if (e.candidate) {
+          socket.emit('ice_candidate', { target: targetId, candidate: e.candidate });
+        }
+      };
 
-        pc.ontrack = (event) => {
-            log(`جریان صدای ${remoteUsername} دریافت شد.`);
-            let audio = peersAudio[remoteUsername];
-            if (!audio) {
-                audio = new Audio();
-                audio.autoplay = true;
-                peersAudio[remoteUsername] = audio;
-            }
-            audio.srcObject = event.streams[0];
-            audio.play().catch(e => log('پخش خودکار صدا متوقف شد: ' + e.message));
-        };
+      pc.ontrack = (e) => {
+        log(`دریافت استریم صدا از: ${targetUsername}`);
+        let audio = peersAudio[targetUsername];
+        if (!audio) {
+          audio = new Audio();
+          audio.autoplay = true;
+          peersAudio[targetUsername] = audio;
+        }
+        audio.srcObject = e.streams[0];
+      };
 
-        return pc;
+      return pc;
     }
 
-    // به‌روزرسانی فاصله‌ها و ولوم
+    // آپدیت موقعیت مکانی و فاصله مجاورتی (Proximity)
     socket.on('positions_update', (positions) => {
-        const lowerPositions = {};
-        for (let k in positions) {
-            lowerPositions[k.toLowerCase()] = positions[k];
+      const lowerPositions = {};
+      for (let k in positions) {
+        lowerPositions[k.toLowerCase()] = positions[k];
+      }
+
+      const myPos = lowerPositions[username];
+      const statusDiv = document.getElementById('statusDiv');
+
+      if (myPos) {
+        statusDiv.innerText = `موقعیت: X:${Math.round(myPos.x)} Y:${Math.round(myPos.y)} Z:${Math.round(myPos.z)} (${myPos.world})`;
+      } else {
+        statusDiv.innerText = `در انتظار دریافت موقعیت شما از بازی...`;
+      }
+
+      for (const [targetName, audio] of Object.entries(peersAudio)) {
+        const targetPos = lowerPositions[targetName.toLowerCase()];
+
+        if (!myPos || !targetPos || myPos.world !== targetPos.world) {
+          audio.volume = 0;
+          continue;
         }
 
-        const myPos = lowerPositions[username];
-        const statusDiv = document.getElementById('statusDiv');
+        const dx = myPos.x - targetPos.x;
+        const dy = myPos.y - targetPos.y;
+        const dz = myPos.z - targetPos.z;
+        const dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
 
-        if (myPos) {
-            statusDiv.innerHTML = `موقعیت شما: X:${myPos.x} Y:${myPos.y} Z:${myPos.z}`;
+        if (dist >= MAX_DISTANCE) {
+          audio.volume = 0;
         } else {
-            statusDiv.innerHTML = `<span style="color:orange;">در انتظار دریافت مختصات شما از سرور بازی...</span>`;
+          audio.volume = Math.max(0, Math.min(1, 1 - (dist / MAX_DISTANCE)));
         }
-
-        for (const [targetName, audio] of Object.entries(peersAudio)) {
-            const targetPos = lowerPositions[targetName];
-
-            // اگر مختصات یکی از دو بازیکن نرسیده، صدا با ولوم ۱ پخش شود تا مطمئن شویم ویس قطع نمی‌شود
-            if (!myPos || !targetPos) {
-                audio.volume = 1.0;
-                continue;
-            }
-
-            if (myPos.world !== targetPos.world) {
-                audio.volume = 0;
-                continue;
-            }
-
-            const dx = myPos.x - targetPos.x;
-            const dy = myPos.y - targetPos.y;
-            const dz = myPos.z - targetPos.z;
-            const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
-
-            const MAX_DIST = 25.0;
-            if (distance >= MAX_DIST) {
-                audio.volume = 0;
-            } else {
-                const vol = Math.max(0, Math.min(1, 1 - (distance / MAX_DIST)));
-                audio.volume = vol;
-            }
-        }
+      }
     });
-
-    // کنترل Mute و Deafen
-    let isMuted = false;
-    document.getElementById('muteBtn').addEventListener('click', () => {
-        if (!localStream) return;
-        isMuted = !isMuted;
-        localStream.getAudioTracks()[0].enabled = !isMuted;
-        document.getElementById('muteBtn').innerText = isMuted ? 'وصل میکروفون' : 'قطع میکروفون (Mute)';
-        document.getElementById('muteBtn').className = isMuted ? 'danger' : '';
-    });
-
-    let isDeafened = false;
-    document.getElementById('deafenBtn').addEventListener('click', () => {
-        isDeafened = !isDeafened;
-        for (const audio of Object.values(peersAudio)) {
-            audio.muted = isDeafened;
-        }
-        document.getElementById('deafenBtn').innerText = isDeafened ? 'وصل صدا' : 'قطع صدا (Deafen)';
-        document.getElementById('deafenBtn').className = isDeafened ? 'danger' : '';
-    });
-</script>
+  </script>
 </body>
 </html>
