@@ -2,125 +2,201 @@
 <html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>تست ویس‌چت ساده</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ویس‌چت فاصله‌محور ماینکرفت</title>
     <script src="/socket.io/socket.io.js"></script>
     <style>
-        body { font-family: sans-serif; background: #1e1e2e; color: #fff; text-align: center; padding-top: 50px; }
-        input, button { padding: 12px 20px; border-radius: 6px; border: none; font-size: 16px; margin: 5px; }
-        button { background: #00b894; color: white; cursor: pointer; }
-        #controls { display: none; margin-top: 20px; }
+        body { font-family: system-ui, sans-serif; background: #121218; color: #fff; text-align: center; padding-top: 30px; }
+        .card { background: #1e1e2a; max-width: 400px; margin: auto; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        input, button { padding: 12px 16px; border-radius: 8px; border: none; font-size: 16px; margin: 8px 0; width: 85%; }
+        button { background: #00b894; color: white; cursor: pointer; font-weight: bold; }
+        button:hover { background: #00a383; }
+        button.danger { background: #d63031; }
+        .hidden { display: none; }
+        #status { margin-top: 15px; color: #aaa; font-size: 14px; }
+        #players-list { margin-top: 15px; text-align: right; background: #161622; padding: 10px; border-radius: 8px; }
     </style>
 </head>
 <body>
-    <h2>تست اتصال ویس‌چت</h2>
-    
-    <div id="login-box">
-        <input type="text" id="username" placeholder="نام خود را وارد کنید">
-        <button onclick="startVoice()">ورود به ویس</button>
-    </div>
-    
-    <p id="status">متصل نشده‌اید.</p>
 
-    <div id="controls">
-        <button id="mute-btn" onclick="toggleMute()">بستن میکروفون (Mute)</button>
+    <div class="card">
+        <h2>ویس‌چت پاکت‌ماین</h2>
+        <div id="login-box">
+            <p>نام دقیق کاراکتر بازی خود را وارد کنید:</p>
+            <input type="text" id="username" placeholder="گیمرتگ (مثلاً Steve)">
+            <button onclick="startVoice()">اتصال به ویس</button>
+        </div>
+
+        <div id="control-box" class="hidden">
+            <h3 id="my-name"></h3>
+            <button id="mute-btn" onclick="toggleMute()">قطع میکروفون (Mute)</button>
+            <div id="status">در انتظار دریافت مختصات از سرور بازی...</div>
+            <div id="players-list"><strong>افراد متصل:</strong></div>
+        </div>
     </div>
 
-    <!-- تگ صوتی برای پخش صدای بقیه کاربران -->
-    <div id="audio-container"></div>
+    <!-- تگ کمکی برای بیدار نگه داشتن صدای مرورگر در پس‌زمینه اندروید -->
+    <audio id="keepAlive" loop></audio>
 
     <script>
         const socket = io();
-        let myUsername = "";
         let localStream = null;
-        let peers = {};
-        let isMuted = false;
+        let myId = null;
+        const peers = {}; // socketId -> RTCPeerConnection
+        const gainNodes = {}; // socketId -> GainNode
+        const MAX_DISTANCE = 25; // حداکثر فاصله شنیدن صدا (بلاک)
+
+        const rtcConfig = {
+            iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+        };
 
         async function startVoice() {
-            myUsername = document.getElementById('username').value.trim();
-            if (!myUsername) return alert("لطفاً نام خود را وارد کنید");
-
-            document.getElementById('status').innerText = "در حال گرفتن دسترسی میکروفون...";
+            const rawName = document.getElementById('username').value.trim();
+            if (!rawName) return alert('لطفاً نام خود را وارد کنید');
 
             try {
                 localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
                 
-                document.getElementById('login-box').style.display = 'none';
-                document.getElementById('status').innerText = `متصل شدید به عنوان: ${myUsername}`;
-                document.getElementById('controls').style.display = 'block';
+                // پخش صدای بی‌صدا برای پس‌زمینه
+                const keepAlive = document.getElementById('keepAlive');
+                keepAlive.src = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=";
+                keepAlive.play().catch(() => {});
 
-                socket.emit('join', myUsername);
+                document.getElementById('login-box').classList.add('hidden');
+                document.getElementById('control-box').classList.remove('hidden');
+                document.getElementById('my-name').innerText = "ورود با: " + rawName;
+
+                socket.emit('join', rawName);
             } catch (err) {
-                alert("خطا در دسترسی به میکروفون: " + err.message);
+                alert('دسترسی به میکروفون داده نشد یا خطایی رخ داد: ' + err.message);
             }
         }
 
+        socket.on('joined', (data) => {
+            myId = data.id;
+        });
+
+        socket.on('players_list', (players) => {
+            for (const id in players) {
+                if (id !== myId && !peers[id]) {
+                    initiatePeerConnection(id, true);
+                }
+            }
+            updatePlayersUI(players);
+        });
+
+        socket.on('player_left', (id) => {
+            if (peers[id]) {
+                peers[id].close();
+                delete peers[id];
+                delete gainNodes[id];
+            }
+        });
+
+        socket.on('signal', async (data) => {
+            let pc = peers[data.sender];
+            if (!pc) {
+                pc = initiatePeerConnection(data.sender, false);
+            }
+
+            if (data.signal.sdp) {
+                await pc.setRemoteDescription(new RTCSessionDescription(data.signal.sdp));
+                if (data.signal.sdp.type === 'offer') {
+                    const answer = await pc.createAnswer();
+                    await pc.setLocalDescription(answer);
+                    socket.emit('signal', { target: data.sender, signal: { sdp: pc.localDescription } });
+                }
+            } else if (data.signal.candidate) {
+                await pc.addIceCandidate(new RTCIceCandidate(data.signal.candidate));
+            }
+        });
+
+        function initiatePeerConnection(targetId, isInitiator) {
+            const pc = new RTCPeerConnection(rtcConfig);
+            peers[targetId] = pc;
+
+            localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
+
+            pc.onicecandidate = (event) => {
+                if (event.candidate) {
+                    socket.emit('signal', { target: targetId, signal: { candidate: event.candidate } });
+                }
+            };
+
+            pc.ontrack = (event) => {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const source = audioCtx.createMediaStreamSource(event.streams[0]);
+                const gainNode = audioCtx.createGain();
+                gainNode.gain.value = 0; // در ابتدا صدا بسته است تا مختصات سنجیده شود
+
+                source.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                gainNodes[targetId] = gainNode;
+            };
+
+            if (isInitiator) {
+                pc.onnegotiationneeded = async () => {
+                    const offer = await pc.createOffer();
+                    await pc.setLocalDescription(offer);
+                    socket.emit('signal', { target: targetId, signal: { sdp: pc.localDescription } });
+                };
+            }
+
+            return pc;
+        }
+
+        // پردازش فاصله و تنظیم ولوم صدا
+        socket.on('positions_update', (players) => {
+            if (!myId || !players[myId]) return;
+            const me = players[myId];
+
+            if (me.x === null) {
+                document.getElementById('status').innerText = "منتظر حضور کاراکتر شما در سرور ماینکرفت...";
+                return;
+            }
+
+            document.getElementById('status').innerText = `متصل به بازی در موقعیت: X:${Math.round(me.x)} Y:${Math.round(me.y)} Z:${Math.round(me.z)}`;
+
+            for (const [id, target] of Object.entries(players)) {
+                if (id === myId || !gainNodes[id]) continue;
+
+                if (target.world !== me.world || target.x === null) {
+                    gainNodes[id].gain.value = 0;
+                    continue;
+                }
+
+                // فرمول فاصله اقلیدسی ۳ بعدی
+                const dx = me.x - target.x;
+                const dy = me.y - target.y;
+                const dz = me.z - target.z;
+                const distance = Math.sqrt(dx*dx + dy*dy + dz*dz);
+
+                if (distance > MAX_DISTANCE) {
+                    gainNodes[id].gain.value = 0; // خارج از محدوده شنیدن
+                } else {
+                    // تغییر ولوم از ۱ (فاصله صفر) تا ۰ (فاصله ۲۵)
+                    const volume = Math.max(0, 1 - (distance / MAX_DISTANCE));
+                    gainNodes[id].gain.value = volume;
+                }
+            }
+        });
+
+        function updatePlayersUI(players) {
+            const listDiv = document.getElementById('players-list');
+            listDiv.innerHTML = '<strong>افراد آنلاین در روم:</strong><br>';
+            for (const id in players) {
+                listDiv.innerHTML += `• ${players[id].username} ${id === myId ? '(شما)' : ''}<br>`;
+            }
+        }
+
+        let isMuted = false;
         function toggleMute() {
             if (!localStream) return;
             isMuted = !isMuted;
             localStream.getAudioTracks()[0].enabled = !isMuted;
             const btn = document.getElementById('mute-btn');
-            btn.style.background = isMuted ? "#d63031" : "#00b894";
-            btn.innerText = isMuted ? "باز کردن میکروفون" : "بستن میکروفون (Mute)";
-        }
-
-        socket.on('user_joined', async ({ username, socketId }) => {
-            console.log("User joined:", username);
-            const pc = createPeerConnection(socketId);
-            peers[socketId] = pc;
-            const offer = await pc.createOffer();
-            await pc.setLocalDescription(offer);
-            socket.emit('signal', { targetSocketId: socketId, signalData: offer });
-        });
-
-        socket.on('signal', async ({ senderSocketId, signalData }) => {
-            let pc = peers[senderSocketId];
-            if (!pc) {
-                pc = createPeerConnection(senderSocketId);
-                peers[senderSocketId] = pc;
-            }
-
-            if (signalData.type === 'offer') {
-                await pc.setRemoteDescription(new RTCSessionDescription(signalData));
-                const answer = await pc.createAnswer();
-                await pc.setLocalDescription(answer);
-                socket.emit('signal', { targetSocketId: senderSocketId, signalData: answer });
-            } else if (signalData.type === 'answer') {
-                await pc.setRemoteDescription(new RTCSessionDescription(signalData));
-            } else if (signalData.candidate) {
-                await pc.addIceCandidate(new RTCIceCandidate(signalData));
-            }
-        });
-
-        socket.on('user_left', (socketId) => {
-            if (peers[socketId]) {
-                peers[socketId].close();
-                delete peers[socketId];
-            }
-        });
-
-        function createPeerConnection(remoteSocketId) {
-            const pc = new RTCPeerConnection({
-                iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
-            });
-
-            localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
-
-            pc.ontrack = (event) => {
-                console.log("Audio stream received from peer!");
-                const audio = document.createElement('audio');
-                audio.srcObject = event.streams[0];
-                audio.autoplay = true;
-                audio.controls = false; // می‌توانید برای تست true بگذارید تا پلیر صدا را ببیند
-                document.getElementById('audio-container').appendChild(audio);
-            };
-
-            pc.onicecandidate = (event) => {
-                if (event.candidate) {
-                    socket.emit('signal', { targetSocketId: remoteSocketId, signalData: event.candidate });
-                }
-            };
-
-            return pc;
+            btn.innerText = isMuted ? "وصل میکروفون (Unmute)" : "قطع میکروفون (Mute)";
+            btn.classList.toggle('danger', isMuted);
         }
     </script>
 </body>
