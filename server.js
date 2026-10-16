@@ -1,7 +1,8 @@
 const express = require('express');
 const path = require('path');
 const bedrock = require('bedrock-protocol');
-const { RCON } = require('rcon-client');
+const { Rcon } = require('rcon-client');
+
 
 const app = express();
 
