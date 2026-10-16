@@ -146,7 +146,10 @@
       if (!roomName) return alert('Please enter a room name!');
 
       try {
-        localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+        localStream = await navigator.mediaDevices.getUserMedia({ 
+          audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }, 
+          video: false 
+        });
       } catch (err) {
         alert('Microphone access denied!');
         return;
@@ -160,19 +163,8 @@
       socket.emit('join_room', { username, room: roomName });
     });
 
-    socket.on('user_list', (users) => {
-      const list = document.getElementById('peersList');
-      list.innerHTML = '';
-      users.forEach(u => {
-        if (u !== username) {
-          const li = document.createElement('li');
-          li.innerText = '• ' + u;
-          list.appendChild(li);
-        }
-      });
-      if (list.children.length === 0) {
-        list.innerHTML = '<li class="text-neutral-500 italic">No other users</li>';
-      }
+    socket.on('room_users', (users) => {
+      updatePeersList(users);
     });
 
     socket.on('user_joined', async ({ id, username: remoteUser }) => {
@@ -182,29 +174,26 @@
 
       const offer = await pc.createOffer();
       await pc.setLocalDescription(offer);
-      socket.emit('offer', { target: id, offer });
+      socket.emit('signal', { to: id, signal: { type: 'offer', sdp: offer } });
     });
 
-    socket.on('offer', async ({ sender, offer, username: remoteUser }) => {
-      const pc = createPeerConnection(sender, remoteUser);
-      peerConnections[sender] = pc;
-      localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
-
-      await pc.setRemoteDescription(new RTCSessionDescription(offer));
-      const answer = await pc.createAnswer();
-      await pc.setLocalDescription(answer);
-      socket.emit('answer', { target: sender, answer });
-    });
-
-    socket.on('answer', async ({ sender, answer }) => {
-      if (peerConnections[sender]) {
-        await peerConnections[sender].setRemoteDescription(new RTCSessionDescription(answer));
+    socket.on('signal', async ({ from, signal }) => {
+      let pc = peerConnections[from];
+      if (!pc) {
+        pc = createPeerConnection(from, 'peer');
+        peerConnections[from] = pc;
+        localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
       }
-    });
 
-    socket.on('ice_candidate', async ({ sender, candidate }) => {
-      if (peerConnections[sender] && candidate) {
-        await peerConnections[sender].addIceCandidate(new RTCIceCandidate(candidate));
+      if (signal.type === 'offer') {
+        await pc.setRemoteDescription(new RTCSessionDescription(signal.sdp));
+        const answer = await pc.createAnswer();
+        await pc.setLocalDescription(answer);
+        socket.emit('signal', { to: from, signal: { type: 'answer', sdp: answer } });
+      } else if (signal.type === 'answer') {
+        await pc.setRemoteDescription(new RTCSessionDescription(signal.sdp));
+      } else if (signal.candidate) {
+        await pc.addIceCandidate(new RTCIceCandidate(signal.candidate));
       }
     });
 
@@ -222,7 +211,9 @@
     function createPeerConnection(targetId, targetUsername) {
       const pc = new RTCPeerConnection(rtcConfig);
       pc.onicecandidate = (e) => {
-        if (e.candidate) socket.emit('ice_candidate', { target: targetId, candidate: e.candidate });
+        if (e.candidate) {
+          socket.emit('signal', { to: targetId, signal: { candidate: e.candidate } });
+        }
       };
       pc.ontrack = (e) => {
         let audio = peersAudio[targetUsername];
@@ -234,6 +225,21 @@
         audio.srcObject = e.streams[0];
       };
       return pc;
+    }
+
+    function updatePeersList(users) {
+      const list = document.getElementById('peersList');
+      list.innerHTML = '';
+      users.forEach(u => {
+        if (u.username !== username) {
+          const li = document.createElement('li');
+          li.innerText = '• ' + u.username;
+          list.appendChild(li);
+        }
+      });
+      if (list.children.length === 0) {
+        list.innerHTML = '<li class="text-neutral-500 italic">No other users</li>';
+      }
     }
   </script>
 </body>
