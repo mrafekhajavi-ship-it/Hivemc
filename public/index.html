@@ -12,13 +12,35 @@
     body {
       background: #050505;
       color: #e2e8f0;
-      font-family: system-ui, -apple-system, sans-serif;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
       overflow: hidden;
       position: relative;
+    }
+
+    /* هاله‌های نوری محیطی (Ambient Glow) برای عمق بخشیدن به صفحه */
+    .ambient-glow {
+      position: absolute;
+      width: 450px;
+      height: 450px;
+      border-radius: 50%;
+      filter: blur(120px);
+      opacity: 0.18;
+      pointer-events: none;
+      z-index: 1;
+    }
+    .glow-cyan {
+      background: #38bdf8;
+      top: 10%;
+      left: 15%;
+    }
+    .glow-purple {
+      background: #a855f7;
+      bottom: 10%;
+      right: 15%;
     }
 
     /* پس‌زمینه با مربع‌های چرخان چندرنگ */
@@ -43,7 +65,6 @@
       box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
     }
 
-    /* حاشیه گردان نورانی برای هر مربع */
     .bg-squares span::before {
       content: '';
       position: absolute;
@@ -53,7 +74,6 @@
       animation: rotateSquareBorder 3s linear infinite;
     }
 
-    /* داخل مربع (مشکی نیمه‌شفاف برای حفظ عمق) */
     .bg-squares span::after {
       content: '';
       position: absolute;
@@ -74,63 +94,45 @@
       100% { transform: translateY(-1200px) rotate(540deg); opacity: 0; }
     }
 
-          /* تنظیم رنگ، ابعاد، سرعت و موقعیت ۱۰ مربع شناور */
-    .bg-squares span:nth-child(1) { 
-      left: 6%; width: 42px; height: 42px; animation-duration: 18s; 
-      --box-color: #ffffff; /* سفید سایبری */
-    }
-    .bg-squares span:nth-child(2) { 
-      left: 18%; width: 28px; height: 28px; animation-duration: 24s; animation-delay: 2s; 
-      --box-color: #10b981; /* سبز زمردی */
-    }
-    .bg-squares span:nth-child(3) { 
-      left: 32%; width: 50px; height: 50px; animation-duration: 21s; animation-delay: 4s; 
-      --box-color: #a855f7; /* بنفش نئونی */
-    }
-    .bg-squares span:nth-child(4) { 
-      left: 45%; width: 34px; height: 34px; animation-duration: 26s; animation-delay: 1s; 
-      --box-color: #f59e0b; /* طلایی کهربایی */
-    }
-    .bg-squares span:nth-child(5) { 
-      left: 58%; width: 44px; height: 44px; animation-duration: 19s; animation-delay: 6s; 
-      --box-color: #ec4899; /* صورتی ماژنتا */
-    }
-    .bg-squares span:nth-child(6) { 
-      left: 70%; width: 30px; height: 30px; animation-duration: 22s; animation-delay: 3s; 
-      --box-color: #06b6d4; /* فیروزه‌ای */
-    }
-    .bg-squares span:nth-child(7) { 
-      left: 82%; width: 48px; height: 48px; animation-duration: 20s; animation-delay: 7s; 
-      --box-color: #e11d48; /* یاقوتی سرخ */
-    }
-    .bg-squares span:nth-child(8) { 
-      left: 92%; width: 36px; height: 36px; animation-duration: 25s; animation-delay: 5s; 
-      --box-color: #84cc16; /* لیمویی نئونی */
-    }
-    .bg-squares span:nth-child(9) { 
-      left: 14%; width: 38px; height: 38px; animation-duration: 23s; animation-delay: 9s; 
-      --box-color: #6366f1; /* نیلی */
-    }
-    .bg-squares span:nth-child(10) { 
-      left: 64%; width: 26px; height: 26px; animation-duration: 17s; animation-delay: 8s; 
-      --box-color: #14b8a6; /* سبز کله‌غازی */
-    }
+    /* ۱۰ مربع رنگارنگ با زمان‌بندی و موقعیت‌های متنوع */
+    .bg-squares span:nth-child(1) { left: 6%; width: 42px; height: 42px; animation-duration: 18s; --box-color: #ffffff; }
+    .bg-squares span:nth-child(2) { left: 18%; width: 28px; height: 28px; animation-duration: 24s; animation-delay: 2s; --box-color: #10b981; }
+    .bg-squares span:nth-child(3) { left: 32%; width: 50px; height: 50px; animation-duration: 21s; animation-delay: 4s; --box-color: #a855f7; }
+    .bg-squares span:nth-child(4) { left: 45%; width: 34px; height: 34px; animation-duration: 26s; animation-delay: 1s; --box-color: #f59e0b; }
+    .bg-squares span:nth-child(5) { left: 58%; width: 44px; height: 44px; animation-duration: 19s; animation-delay: 6s; --box-color: #ec4899; }
+    .bg-squares span:nth-child(6) { left: 70%; width: 30px; height: 30px; animation-duration: 22s; animation-delay: 3s; --box-color: #06b6d4; }
+    .bg-squares span:nth-child(7) { left: 82%; width: 48px; height: 48px; animation-duration: 20s; animation-delay: 7s; --box-color: #e11d48; }
+    .bg-squares span:nth-child(8) { left: 92%; width: 36px; height: 36px; animation-duration: 25s; animation-delay: 5s; --box-color: #84cc16; }
+    .bg-squares span:nth-child(9) { left: 14%; width: 38px; height: 38px; animation-duration: 23s; animation-delay: 9s; --box-color: #6366f1; }
+    .bg-squares span:nth-child(10) { left: 64%; width: 26px; height: 26px; animation-duration: 17s; animation-delay: 8s; --box-color: #14b8a6; }
 
-
-
-    /* استایل کارت مرکزی */
+    /* کارت مرکزی با شیشه دودی و حاشیه نوری ظریف */
     .card {
       position: relative;
       z-index: 10;
-      background: rgba(15, 15, 15, 0.85);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      backdrop-filter: blur(12px);
-      border-radius: 18px;
-      padding: 36px 28px;
-      width: 90%;
+      background: rgba(14, 14, 18, 0.75);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-radius: 24px;
+      padding: 36px 30px;
+      width: 92%;
       max-width: 440px;
-      box-shadow: 0 20px 45px rgba(0, 0, 0, 0.8);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.85), inset 0 1px 0 rgba(255, 255, 255, 0.1);
       text-align: center;
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+    .card:hover {
+      box-shadow: 0 30px 60px -12px rgba(56, 189, 248, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    }
+
+    /* تیتر Hivemc با افکت متنی گرادیان نوری */
+    .brand-title {
+      background: linear-gradient(135deg, #ffffff 40%, #7dd3fc 80%, #38bdf8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 0 25px rgba(56, 189, 248, 0.35);
+      letter-spacing: 2px;
     }
 
     /* دکمه با خط مرزی گردان */
@@ -139,13 +141,16 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      padding: 3px;
+      padding: 2.5px;
       border-radius: 12px;
       overflow: hidden;
-      width: 75%;
-      margin: 20px auto 0 auto;
+      width: 100%;
       cursor: pointer;
       text-decoration: none;
+      transition: transform 0.2s ease;
+    }
+    .rotating-border-btn:active {
+      transform: scale(0.98);
     }
     .rotating-border-btn::before {
       content: '';
@@ -155,7 +160,7 @@
       width: 200%;
       height: 200%;
       background: conic-gradient(transparent, #38bdf8, transparent 210deg);
-      animation: rotateBorder 4s linear infinite;
+      animation: rotateBorder 3.5s linear infinite;
     }
     @keyframes rotateBorder {
       100% { transform: rotate(360deg); }
@@ -168,30 +173,74 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      background: #0f172a;
-      border-radius: 9px;
+      gap: 10px;
+      background: #090d16;
+      border-radius: 10px;
       color: #ffffff;
       font-weight: 600;
       font-size: 15px;
-      letter-spacing: 0.5px;
       transition: background 0.2s, color 0.2s;
     }
     .rotating-border-btn:hover span {
-      background: #1e293b;
-      color: #ffffff;
+      background: #0f172a;
     }
 
-    /* سوئیچ تغییر زبان */
+    /* دکمه ورود مستقیم به ماینکرفت (Deep-link) */
+    .quick-join-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      height: 42px;
+      margin-top: 10px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: #94a3b8;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all 0.2s;
+      text-decoration: none;
+    }
+    .quick-join-btn:hover {
+      background: rgba(56, 189, 248, 0.1);
+      border-color: rgba(56, 189, 248, 0.3);
+      color: #38bdf8;
+    }
+
+    /* دکمه‌های شبکه‌های اجتماعی پایین کارت */
+    .social-btn {
+      width: 38px;
+      height: 38px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: #94a3b8;
+      transition: all 0.2s;
+      text-decoration: none;
+    }
+    .social-btn:hover {
+      color: #fff;
+      transform: translateY(-2px);
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.25);
+    }
+
+    /* سوئیچ زبان */
     .lang-switcher {
       position: absolute;
       top: 20px;
       right: 20px;
       z-index: 20;
       display: flex;
-      gap: 6px;
-      background: rgba(255, 255, 255, 0.06);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      border-radius: 8px;
+      gap: 5px;
+      background: rgba(15, 15, 20, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 10px;
       padding: 4px;
       backdrop-filter: blur(8px);
     }
@@ -199,30 +248,32 @@
       background: transparent;
       border: none;
       color: #94a3b8;
-      padding: 4px 10px;
-      border-radius: 5px;
+      padding: 5px 12px;
+      border-radius: 6px;
       font-size: 12px;
-      font-weight: bold;
+      font-weight: 700;
       cursor: pointer;
       transition: all 0.2s;
     }
     .lang-btn.active {
       background: #38bdf8;
       color: #050505;
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
     }
 
-    /* باکس وضعیت سرور */
+    /* باکس وضعیت آنلاین سرور */
     .status-badge {
       display: inline-flex;
       align-items: center;
       gap: 8px;
       padding: 6px 14px;
       border-radius: 9999px;
-      font-size: 13px;
-      font-weight: 500;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      margin-bottom: 18px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      margin-bottom: 20px;
     }
     .status-dot {
       width: 8px;
@@ -233,57 +284,85 @@
     .status-dot.online {
       background: #10b981;
       box-shadow: 0 0 10px #10b981;
+      animation: pulseDot 2s infinite;
     }
     .status-dot.offline {
       background: #ef4444;
       box-shadow: 0 0 10px #ef4444;
     }
+    @keyframes pulseDot {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
   </style>
 </head>
 <body>
 
-  <!-- دکمه‌های تغییر زبان -->
+  <!-- هاله‌های نوری محو پشت صحنه -->
+  <div class="ambient-glow glow-cyan"></div>
+  <div class="ambient-glow glow-purple"></div>
+
+  <!-- تغییر زبان -->
   <div class="lang-switcher">
     <button class="lang-btn active" id="btn-en" onclick="setLanguage('en')">EN</button>
     <button class="lang-btn" id="btn-fa" onclick="setLanguage('fa')">FA</button>
   </div>
 
-    <!-- پس‌زمینه شناور با ۱۰ مربع چندرنگ -->
+  <!-- پس‌زمینه شناور مربعی (۱۰ تایی با رنگ‌های مختلف) -->
   <div class="bg-squares">
     <span></span><span></span><span></span><span></span><span></span>
     <span></span><span></span><span></span><span></span><span></span>
   </div>
 
-
-  <!-- کارت شیشه‌ای در مرکز -->
+  <!-- کارت مرکزی -->
   <div class="card">
     <div class="status-badge">
       <span class="status-dot" id="server-dot"></span>
       <span id="server-status-text" data-i18n="checking">Checking server...</span>
     </div>
 
-    <h1 class="text-3xl font-extrabold text-white tracking-wider mb-2">HIVEMC</h1>
-    <p class="text-sm text-slate-400 mb-6" data-i18n="subtitle">Official Bedrock & PocketMine Server</p>
+    <!-- لوگو و آیکون مکعبی سرور -->
+    <div class="w-14 h-14 mx-auto mb-3 rounded-2xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-sky-500/30">
+      <i class="fa-solid fa-cube text-white text-2xl"></i>
+    </div>
 
-    <!-- کادر اطلاعات و پورت سرور -->
-    <div class="bg-black/50 border border-white/5 rounded-xl p-4 mb-3 text-left">
-      <div class="flex justify-between items-center text-sm py-1 border-b border-white/5">
-        <span class="text-slate-400" data-i18n="lbl_ip">Server IP:</span>
+    <h1 class="brand-title text-4xl font-black mb-1">HIVEMC</h1>
+    <p class="text-xs text-slate-400 mb-6 font-medium" data-i18n="subtitle">Official Bedrock & PocketMine Server</p>
+
+    <!-- کادر اطلاعات سرور -->
+    <div class="bg-black/60 border border-white/5 rounded-2xl p-4 mb-4 text-left shadow-inner">
+      <div class="flex justify-between items-center text-sm py-1.5 border-b border-white/5">
+        <span class="text-slate-400 text-xs font-medium" data-i18n="lbl_ip">Server IP:</span>
         <span class="font-mono text-sky-400 select-all font-semibold">sv2.tgmc.ir</span>
       </div>
-      <div class="flex justify-between items-center text-sm py-1 border-b border-white/5 mt-1">
-        <span class="text-slate-400" data-i18n="lbl_port">Port:</span>
+      <div class="flex justify-between items-center text-sm py-1.5 border-b border-white/5 mt-1">
+        <span class="text-slate-400 text-xs font-medium" data-i18n="lbl_port">Port:</span>
         <span class="font-mono text-sky-400 select-all font-semibold">27235</span>
       </div>
-      <div class="flex justify-between items-center text-sm py-1 mt-1">
-        <span class="text-slate-400" data-i18n="lbl_players">Players Online:</span>
-        <span id="player-count" class="font-mono font-bold text-emerald-400">0 / 0</span>
+      <div class="flex justify-between items-center text-sm py-1.5 mt-1">
+        <span class="text-slate-400 text-xs font-medium" data-i18n="lbl_players">Players Online:</span>
+        <span id="player-count" class="font-mono font-bold text-emerald-400 text-sm">0 / 0</span>
       </div>
     </div>
 
-    <!-- دکمه کپی با متن سفید خالص -->
+    <!-- دکمه کپی آدرس سرور با افکت چرخان -->
     <div class="rotating-border-btn" onclick="copyServerAddress()">
-      <span id="btn-copy-text" data-i18n="btn_copy">Copy Server IP</span>
+      <span id="btn-copy-text" data-i18n="btn_copy">
+        <i class="fa-regular fa-copy text-sky-400"></i> Copy Server IP
+      </span>
+    </div>
+
+    <!-- دکمه ورود مستقیم به بازی (مخصوص بازیکنان گوشی) -->
+    <a href="minecraft://?addExternalServer=Hivemc|sv2.tgmc.ir:27235" class="quick-join-btn">
+      <i class="fa-solid fa-gamepad text-xs"></i>
+      <span data-i18n="quick_join">Direct Play / Add to Game</span>
+    </a>
+
+    <!-- بخش شبکه‌های اجتماعی سرور -->
+    <div class="mt-5 pt-4 border-t border-white/5 flex items-center justify-center gap-3">
+      <a href="#" class="social-btn" title="Discord"><i class="fa-brands fa-discord"></i></a>
+      <a href="#" class="social-btn" title="Telegram"><i class="fa-brands fa-telegram"></i></a>
+      <a href="#" class="social-btn" title="YouTube"><i class="fa-brands fa-youtube"></i></a>
     </div>
   </div>
 
@@ -297,8 +376,9 @@
         lbl_ip: "Server IP:",
         lbl_port: "Port:",
         lbl_players: "Players Online:",
-        btn_copy: "Copy Server IP",
-        copied: "IP Copied to Clipboard!"
+        btn_copy: '<i class="fa-regular fa-copy text-sky-400"></i> Copy Server IP',
+        copied: '<i class="fa-solid fa-check text-emerald-400"></i> Copied to Clipboard!',
+        quick_join: "Direct Play / Add to Game"
       },
       fa: {
         checking: "در حال بررسی سرور...",
@@ -308,8 +388,9 @@
         lbl_ip: "آدرس سرور:",
         lbl_port: "پورت سرور:",
         lbl_players: "بازیکنان آنلاین:",
-        btn_copy: "کپی آدرس سرور",
-        copied: "آدرس سرور کپی شد!"
+        btn_copy: '<i class="fa-regular fa-copy text-sky-400"></i> کپی آدرس سرور',
+        copied: '<i class="fa-solid fa-check text-emerald-400"></i> آدرس کپی شد!',
+        quick_join: "اتصال مستقیم / افزودن به ماینکرفت"
       }
     };
 
@@ -327,12 +408,11 @@
       document.querySelectorAll('[data-i18n]').forEach(el => {
         const key = el.getAttribute('data-i18n');
         if (translations[lang][key]) {
-          el.innerText = translations[lang][key];
+          el.innerHTML = translations[lang][key];
         }
       });
     }
 
-    // دریافت آمار زنده از بک‌اند Express
     async function updateServerStatus() {
       try {
         const res = await fetch('/api/server-status');
@@ -345,34 +425,32 @@
         if (data.online) {
           dot.className = "status-dot online";
           statusText.setAttribute('data-i18n', 'online');
-          statusText.innerText = translations[currentLang].online;
+          statusText.innerHTML = translations[currentLang].online;
           playerCount.innerText = `${data.currentPlayers} / ${data.maxPlayers}`;
         } else {
           dot.className = "status-dot offline";
           statusText.setAttribute('data-i18n', 'offline');
-          statusText.innerText = translations[currentLang].offline;
+          statusText.innerHTML = translations[currentLang].offline;
           playerCount.innerText = "0 / 0";
         }
       } catch (err) {
         document.getElementById('server-dot').className = "status-dot offline";
         const statusText = document.getElementById('server-status-text');
         statusText.setAttribute('data-i18n', 'offline');
-        statusText.innerText = translations[currentLang].offline;
+        statusText.innerHTML = translations[currentLang].offline;
       }
     }
 
-    // کپی آی‌پی در کلیپ‌بورد
     function copyServerAddress() {
       navigator.clipboard.writeText("sv2.tgmc.ir:27235");
       const btnText = document.getElementById('btn-copy-text');
-      const originalText = translations[currentLang].btn_copy;
-      btnText.innerText = translations[currentLang].copied;
+      const originalHtml = translations[currentLang].btn_copy;
+      btnText.innerHTML = translations[currentLang].copied;
       setTimeout(() => {
-        btnText.innerText = originalText;
+        btnText.innerHTML = originalHtml;
       }, 2500);
     }
 
-    // راه‌اندازی اولیه
     setLanguage(currentLang);
     updateServerStatus();
     setInterval(updateServerStatus, 5000);
