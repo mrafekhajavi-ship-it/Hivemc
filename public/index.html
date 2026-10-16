@@ -217,11 +217,11 @@
       
       if (isDeafened) {
         btn.classList.add('muted');
-        icon.className = "fa-solid fa-headphones-slash"; // اصلاح شد تا آیکون خط‌خورده نمایش داده شود
+        icon.className = "fa-solid fa-volume-xmark"; // تغییر به آیکون قطع صدای استاندارد و تضمینی
         if (!isMicMuted) toggleMic(); // قطع میکروفون هنگام دیفن (مثل دیسکورد)
       } else {
         btn.classList.remove('muted');
-        icon.className = "fa-solid fa-headphones"; // بازگشت به آیکون اصلی هدست
+        icon.className = "fa-solid fa-headphones"; // بازگشت به آیکون هدفون
       }
     }
 
