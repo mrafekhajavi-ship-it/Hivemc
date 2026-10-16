@@ -77,7 +77,7 @@ app.post('/api/buy-rank', async (req, res) => {
   try {
     const rcon = new Rcon({
       host: process.env.RCON_HOST || 'sv2.tgmc.ir',
-      port: parseInt(process.env.RCON_PORT || '19132'),
+      port: parseInt(process.env.RCON_PORT || '27235'),
       password: process.env.RCON_PASSWORD
     });
 
