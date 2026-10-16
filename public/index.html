@@ -42,10 +42,11 @@
       position: relative; z-index: 10;
       width: min(92%, 400px);
       height: 280px;
-      padding: 20px 24px;
+      /* اینجا مقدار بالای پدینگ را کمتر کردیم تا متن‌ها بیایند بالاتر */
+      padding: 25px 24px 20px 24px;
       display: flex;
       flex-direction: column;
-      justify-content: center;
+      justify-content: flex-start; /* محتوا از بالا چیده می‌شود و می‌آید بالا */
       align-items: center;
       border: 1px solid rgba(255,255,255,0.15);
       border-radius: 20px;
