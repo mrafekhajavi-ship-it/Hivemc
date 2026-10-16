@@ -71,13 +71,16 @@
       border-radius: 11px; padding: 13px;
       background: #090909; color: #fff; text-align: center; font-size: 15px;
     }
-    .rotating-border-btn {
+        .rotating-border-btn {
       position: relative; overflow: hidden; width: 70%;
-      margin-top: 25px;
-      margin: 0 auto;
+      
+      /* این شکلی بنویس: بالا 25 پیکسل فاصله، چپ و راست به صورت خودکار وسط */
+      margin: 25px auto 0 auto; 
+      
       padding: 2px; border: 0; border-radius: 12px;
       background: transparent; cursor: pointer;
     }
+
     .rotating-border-btn::before {
       content: ""; position: absolute; inset: -150%; z-index: 1;
       background: conic-gradient(transparent 0deg, transparent 240deg, #fff 300deg, transparent 360deg);
