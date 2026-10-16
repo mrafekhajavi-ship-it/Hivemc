@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
+    
     body {
       background: #050505;
       color: #e2e8f0;
@@ -20,7 +21,7 @@
       position: relative;
     }
 
-    /* پس‌زمینه مربعی شناور */
+    /* پس‌زمینه با مربع‌های چرخان چندرنگ */
     .bg-squares {
       position: absolute;
       inset: 0;
@@ -28,28 +29,71 @@
       z-index: 0;
       pointer-events: none;
     }
+    
     .bg-squares span {
       position: absolute;
-      display: block;
-      width: 20px;
-      height: 20px;
-      background: rgba(255, 255, 255, 0.15);
-      border: 1px solid rgba(255, 255, 255, 0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
       bottom: -150px;
       animation: floatUp 22s infinite linear;
-      border-radius: 4px;
+      border-radius: 8px;
+      overflow: hidden;
+      padding: 2px;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
     }
-    .bg-squares span:nth-child(1) { left: 10%; width: 40px; height: 40px; animation-duration: 18s; }
-    .bg-squares span:nth-child(2) { left: 25%; width: 25px; height: 25px; animation-duration: 25s; animation-delay: 2s; }
-    .bg-squares span:nth-child(3) { left: 45%; width: 50px; height: 50px; animation-duration: 20s; animation-delay: 4s; }
-    .bg-squares span:nth-child(4) { left: 70%; width: 30px; height: 30px; animation-duration: 24s; animation-delay: 1s; }
-    .bg-squares span:nth-child(5) { left: 85%; width: 45px; height: 45px; animation-duration: 19s; animation-delay: 5s; }
+
+    /* حاشیه گردان نورانی برای هر مربع */
+    .bg-squares span::before {
+      content: '';
+      position: absolute;
+      width: 250%;
+      height: 250%;
+      background: conic-gradient(transparent, var(--box-color, #38bdf8), transparent 200deg);
+      animation: rotateSquareBorder 3s linear infinite;
+    }
+
+    /* داخل مربع (مشکی نیمه‌شفاف برای حفظ عمق) */
+    .bg-squares span::after {
+      content: '';
+      position: absolute;
+      inset: 2px;
+      background: rgba(10, 10, 10, 0.85);
+      border-radius: 6px;
+      z-index: 1;
+    }
+
+    @keyframes rotateSquareBorder {
+      100% { transform: rotate(360deg); }
+    }
 
     @keyframes floatUp {
       0% { transform: translateY(0) rotate(0deg); opacity: 0; }
-      20% { opacity: 0.8; }
-      80% { opacity: 0.8; }
-      100% { transform: translateY(-1200px) rotate(720deg); opacity: 0; }
+      20% { opacity: 0.85; }
+      80% { opacity: 0.85; }
+      100% { transform: translateY(-1200px) rotate(540deg); opacity: 0; }
+    }
+
+    /* تنظیم رنگ‌های نئونی، سایز و مکان هر مربع */
+    .bg-squares span:nth-child(1) { 
+      left: 10%; width: 44px; height: 44px; animation-duration: 18s; 
+      --box-color: #38bdf8; /* آبی سایبری */
+    }
+    .bg-squares span:nth-child(2) { 
+      left: 28%; width: 32px; height: 32px; animation-duration: 25s; animation-delay: 2s; 
+      --box-color: #10b981; /* سبز نئونی */
+    }
+    .bg-squares span:nth-child(3) { 
+      left: 50%; width: 52px; height: 52px; animation-duration: 20s; animation-delay: 4s; 
+      --box-color: #a855f7; /* بنفش نئونی */
+    }
+    .bg-squares span:nth-child(4) { 
+      left: 72%; width: 36px; height: 36px; animation-duration: 24s; animation-delay: 1s; 
+      --box-color: #f59e0b; /* کهربایی طلایی */
+    }
+    .bg-squares span:nth-child(5) { 
+      left: 88%; width: 46px; height: 46px; animation-duration: 19s; animation-delay: 5s; 
+      --box-color: #ec4899; /* صورتی ماژنتا */
     }
 
     /* استایل کارت مرکزی */
@@ -112,7 +156,7 @@
     }
     .rotating-border-btn:hover span {
       background: #1e293b;
-      color: #7dd3fc;
+      color: #ffffff;
     }
 
     /* سوئیچ تغییر زبان */
@@ -176,18 +220,18 @@
 </head>
 <body>
 
-  <!-- تغییر زبان -->
+  <!-- دکمه‌های تغییر زبان -->
   <div class="lang-switcher">
     <button class="lang-btn active" id="btn-en" onclick="setLanguage('en')">EN</button>
     <button class="lang-btn" id="btn-fa" onclick="setLanguage('fa')">FA</button>
   </div>
 
-  <!-- پس‌زمینه شناور مربعی -->
+  <!-- پس‌زمینه شناور با مربع‌های چندرنگ نورانی -->
   <div class="bg-squares">
     <span></span><span></span><span></span><span></span><span></span>
   </div>
 
-  <!-- کارت مرکزی -->
+  <!-- کارت شیشه‌ای در مرکز -->
   <div class="card">
     <div class="status-badge">
       <span class="status-dot" id="server-dot"></span>
@@ -197,7 +241,7 @@
     <h1 class="text-3xl font-extrabold text-white tracking-wider mb-2">HIVEMC</h1>
     <p class="text-sm text-slate-400 mb-6" data-i18n="subtitle">Official Bedrock & PocketMine Server</p>
 
-    <!-- کادر اطلاعات سرور -->
+    <!-- کادر اطلاعات و پورت سرور -->
     <div class="bg-black/50 border border-white/5 rounded-xl p-4 mb-3 text-left">
       <div class="flex justify-between items-center text-sm py-1 border-b border-white/5">
         <span class="text-slate-400" data-i18n="lbl_ip">Server IP:</span>
@@ -213,7 +257,7 @@
       </div>
     </div>
 
-    <!-- دکمه کپی آدرس -->
+    <!-- دکمه کپی با متن سفید خالص -->
     <div class="rotating-border-btn" onclick="copyServerAddress()">
       <span id="btn-copy-text" data-i18n="btn_copy">Copy Server IP</span>
     </div>
@@ -264,7 +308,7 @@
       });
     }
 
-    // دریافت داده‌های آنلاین سرور از API
+    // دریافت آمار زنده از بک‌اند Express
     async function updateServerStatus() {
       try {
         const res = await fetch('/api/server-status');
@@ -293,7 +337,7 @@
       }
     }
 
-    // کپی کردن آی‌پی با کلیک
+    // کپی آی‌پی در کلیپ‌بورد
     function copyServerAddress() {
       navigator.clipboard.writeText("sv2.tgmc.ir:27235");
       const btnText = document.getElementById('btn-copy-text');
@@ -304,7 +348,7 @@
       }, 2500);
     }
 
-    // مقداردهی اولیه
+    // راه‌اندازی اولیه
     setLanguage(currentLang);
     updateServerStatus();
     setInterval(updateServerStatus, 5000);
