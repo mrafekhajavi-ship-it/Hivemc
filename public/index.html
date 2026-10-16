@@ -122,6 +122,17 @@
     </div>
   </div>
 
+<!-- دکمه میکروفون (Mute/Unmute Mic) -->
+<button id="mic-btn" class="control-btn">
+  <i class="fa-solid fa-microphone" id="mic-icon"></i>
+</button>
+
+<!-- دکمه هدفون (Deafen/Undeafen Sound) -->
+<button id="deafen-btn" class="control-btn">
+  <i class="fa-solid fa-headphones" id="deafen-icon"></i>
+</button>
+
+  
   <script>
     const socket = io();
     let localStream;
