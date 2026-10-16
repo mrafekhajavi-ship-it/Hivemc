@@ -53,36 +53,54 @@ app.get('/api/server-status', async (req, res) => {
 });
 
 // مسیر خرید رنک بدون هیچ‌گونه شرط اضافی و خطای دستوری
+
+// در فایل server.js، بخش مربوط به درخواست خرید رنک:
 app.post('/api/buy-rank', async (req, res) => {
-    let { username, rank } = req.body;
+  const { gamertag, rank } = req.body;
 
-    if (!username || !rank) {
-        return res.status(400).json({ success: false, message: 'نام کاربری یا رنک وارد نشده است.' });
-    }
+  // اعتبارسنجی نام کاربری و نام رنک‌های مجاز
+  if (!gamertag || typeof gamertag !== 'string' || gamertag.length > 16) {
+    return res.status(400).json({ success: false, message: 'Invalid username.' });
+  }
 
-    const cleanUsername = username.trim();
-    const cleanRank = rank.trim();
+  // نام رنک‌های مجاز مطابق دکمه‌های سایت
+  const allowedRanks = ['Elite', 'ultra', 'Legend'];
+  const cleanRank = allowedRanks.find(r => r.toLowerCase() === (rank || '').toLowerCase());
+  
+  if (!cleanRank) {
+    return res.status(400).json({ success: false, message: 'Invalid rank selected.' });
+  }
 
-    console.log(`درخواست خرید -> کاربر: ${cleanUsername} | رنک: ${cleanRank}`);
+  // پاکسازی نام کاربری برای جلوگیری از کاراکترهای اضافی
+  const cleanUsername = gamertag.replace(/[^a-zA-Z0-9_]/g, '');
 
-    try {
-        const rcon = await Rcon.connect({
-            host: process.env.RCON_HOST || 'sv2.tgmc.ir',
-            port: parseInt(process.env.RCON_PORT || '19132', 10),
-            password: process.env.RCON_PASSWORD || 'commandkir94111504l',
-            timeout: 5000
-        });
+  try {
+    const rcon = new Rcon({
+      host: process.env.RCON_HOST || 'sv2.tgmc.ir',
+      port: parseInt(process.env.RCON_PORT || '19132'),
+      password: process.env.RCON_PASSWORD
+    });
 
-        const response = await rcon.send(`setrank "${cleanUsername}" ${cleanRank}`);
-        await rcon.end();
+    await rcon.connect();
 
-        console.log(`پاسخ RCON: ${response}`);
-        return res.json({ success: true, message: `رنک ${cleanRank} با موفقیت روی اکانت ${cleanUsername} اعمال شد!` });
+    // ارسال دستور دقیق طبق تست شما با مدت ۳۰ روز
+    const command = `ranks setrank "${cleanUsername}" ${cleanRank} 30d`;
+    const rconResponse = await rcon.send(command);
+    
+    await rcon.end();
 
-    } catch (err) {
-        console.error('خطای RCON:', err);
-        return res.status(500).json({ success: false, message: 'خطای ارتباط با سرور (RCON ناموفق بود).' });
-    }
+    return res.json({ 
+      success: true, 
+      message: `Rank ${cleanRank} successfully applied to ${cleanUsername} for 30 days!` 
+    });
+
+  } catch (error) {
+    console.error('RCON Error:', error);
+    return res.status(500).json({ 
+      success: false, 
+      message: 'Failed to connect to server console. Make sure player is online!' 
+    });
+  }
 });
 
 const PORT = process.env.PORT || 10000;
