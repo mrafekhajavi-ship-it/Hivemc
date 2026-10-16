@@ -41,8 +41,12 @@
     .card {
       position: relative; z-index: 10;
       width: min(92%, 400px);
-      height: 260px
-      padding: 30px 24px;
+      height: 280px;
+      padding: 20px 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
       border: 1px solid rgba(255,255,255,0.15);
       border-radius: 20px;
       background: rgba(15,15,15,0.9);
@@ -50,8 +54,11 @@
       text-align: center;
       box-shadow: 0 0 35px rgba(255,255,255,0.05);
     }
+    .card > * {
+      width: 100%;
+    }
     .input-wrap {
-      margin-bottom: 20px; padding: 1px; border-radius: 12px;
+      margin-bottom: 15px; padding: 1px; border-radius: 12px;
       background: #333; transition: 0.3s;
     }
     .input-wrap:focus-within {
@@ -65,6 +72,7 @@
     }
     .rotating-border-btn {
       position: relative; overflow: hidden; width: 70%;
+      margin: 0 auto;
       padding: 2px; border: 0; border-radius: 12px;
       background: transparent; cursor: pointer;
     }
@@ -87,8 +95,10 @@
   </div>
 
   <div class="card">
-    <h1 class="text-2xl font-bold text-white mb-2">Proximity Voice</h1>
-    <p class="text-xs text-gray-400 mb-6">Talk directly to nearby players</p>
+    <div>
+      <h1 class="text-2xl font-bold text-white mb-1">Proximity Voice</h1>
+      <p class="text-xs text-gray-400 mb-4">Talk directly to nearby players</p>
+    </div>
 
     <div id="login-box">
       <div class="input-wrap">
@@ -97,7 +107,7 @@
       <button class="rotating-border-btn" onclick="connectVoice()">
         <span>Connect Voice</span>
       </button>
-      <p id="err" class="text-red-400 text-xs mt-3 hidden"></p>
+      <p id="err" class="text-red-400 text-xs mt-2 hidden"></p>
     </div>
 
     <div id="active-box" class="hidden p-4 rounded-xl bg-green-500/10 border border-green-500/30">
