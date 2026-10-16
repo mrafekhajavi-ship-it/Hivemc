@@ -68,8 +68,8 @@ app.post('/api/buy-rank', async (req, res) => {
     try {
         const rcon = await Rcon.connect({
             host: process.env.RCON_HOST || 'sv2.tgmc.ir',
-            port: parseInt(process.env.RCON_PORT || '19132', 10),
-            password: process.env.RCON_PASSWORD || '######################',
+            port: parseInt(process.env.RCON_PORT || '27235', 10),
+            password: process.env.RCON_PASSWORD || 'commandkir94111504l,
             timeout: 5000
         });
 
