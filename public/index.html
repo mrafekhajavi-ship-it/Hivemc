@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Hivemc Network</title>
+  <title>Hivemc Network | Ranks & Server</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
@@ -17,11 +17,12 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      overflow: hidden;
+      overflow-x: hidden;
       position: relative;
+      padding: 20px 10px;
     }
 
-    /* هاله‌های نوری محیطی (Ambient Glow) برای عمق بخشیدن به صفحه */
+    /* هاله‌های نوری محیطی */
     .ambient-glow {
       position: absolute;
       width: 450px;
@@ -32,20 +33,12 @@
       pointer-events: none;
       z-index: 1;
     }
-    .glow-cyan {
-      background: #38bdf8;
-      top: 10%;
-      left: 15%;
-    }
-    .glow-purple {
-      background: #a855f7;
-      bottom: 10%;
-      right: 15%;
-    }
+    .glow-cyan { background: #38bdf8; top: 10%; left: 10%; }
+    .glow-purple { background: #a855f7; bottom: 10%; right: 10%; }
 
     /* پس‌زمینه با مربع‌های چرخان چندرنگ */
     .bg-squares {
-      position: absolute;
+      position: fixed;
       inset: 0;
       overflow: hidden;
       z-index: 0;
@@ -94,7 +87,7 @@
       100% { transform: translateY(-1200px) rotate(540deg); opacity: 0; }
     }
 
-    /* ۱۰ مربع رنگارنگ با زمان‌بندی و موقعیت‌های متنوع */
+    /* ۱۰ مربع رنگارنگ */
     .bg-squares span:nth-child(1) { left: 6%; width: 42px; height: 42px; animation-duration: 18s; --box-color: #ffffff; }
     .bg-squares span:nth-child(2) { left: 18%; width: 28px; height: 28px; animation-duration: 24s; animation-delay: 2s; --box-color: #10b981; }
     .bg-squares span:nth-child(3) { left: 32%; width: 50px; height: 50px; animation-duration: 21s; animation-delay: 4s; --box-color: #a855f7; }
@@ -106,33 +99,54 @@
     .bg-squares span:nth-child(9) { left: 14%; width: 38px; height: 38px; animation-duration: 23s; animation-delay: 9s; --box-color: #6366f1; }
     .bg-squares span:nth-child(10) { left: 64%; width: 26px; height: 26px; animation-duration: 17s; animation-delay: 8s; --box-color: #14b8a6; }
 
-    /* کارت مرکزی با شیشه دودی و حاشیه نوری ظریف */
+    /* کارت مرکزی */
     .card {
       position: relative;
       z-index: 10;
-      background: rgba(14, 14, 18, 0.75);
+      background: rgba(14, 14, 18, 0.78);
       border: 1px solid rgba(255, 255, 255, 0.1);
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
       border-radius: 24px;
-      padding: 36px 30px;
-      width: 92%;
-      max-width: 440px;
+      padding: 32px 26px;
+      width: 100%;
+      max-width: 500px;
       box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.85), inset 0 1px 0 rgba(255, 255, 255, 0.1);
       text-align: center;
-      transition: transform 0.25s ease, box-shadow 0.25s ease;
-    }
-    .card:hover {
-      box-shadow: 0 30px 60px -12px rgba(56, 189, 248, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+      transition: all 0.3s ease;
     }
 
-    /* تیتر Hivemc با افکت متنی گرادیان نوری */
     .brand-title {
       background: linear-gradient(135deg, #ffffff 40%, #7dd3fc 80%, #38bdf8 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-      text-shadow: 0 0 25px rgba(56, 189, 248, 0.35);
       letter-spacing: 2px;
+    }
+
+    /* نویگیشن تب‌ها */
+    .tab-bar {
+      display: flex;
+      gap: 6px;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 4px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      margin-bottom: 22px;
+    }
+    .tab-item {
+      flex: 1;
+      padding: 8px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #94a3b8;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .tab-item.active {
+      background: rgba(56, 189, 248, 0.15);
+      color: #38bdf8;
+      border: 1px solid rgba(56, 189, 248, 0.3);
     }
 
     /* دکمه با خط مرزی گردان */
@@ -147,10 +161,6 @@
       width: 100%;
       cursor: pointer;
       text-decoration: none;
-      transition: transform 0.2s ease;
-    }
-    .rotating-border-btn:active {
-      transform: scale(0.98);
     }
     .rotating-border-btn::before {
       content: '';
@@ -162,9 +172,7 @@
       background: conic-gradient(transparent, #38bdf8, transparent 210deg);
       animation: rotateBorder 3.5s linear infinite;
     }
-    @keyframes rotateBorder {
-      100% { transform: rotate(360deg); }
-    }
+    @keyframes rotateBorder { 100% { transform: rotate(360deg); } }
     .rotating-border-btn span {
       position: relative;
       z-index: 1;
@@ -179,13 +187,11 @@
       color: #ffffff;
       font-weight: 600;
       font-size: 15px;
-      transition: background 0.2s, color 0.2s;
+      transition: background 0.2s;
     }
-    .rotating-border-btn:hover span {
-      background: #0f172a;
-    }
+    .rotating-border-btn:hover span { background: #0f172a; }
 
-    /* دکمه ورود مستقیم به ماینکرفت (Deep-link) */
+    /* دکمه اتصال بازی */
     .quick-join-btn {
       display: flex;
       align-items: center;
@@ -209,25 +215,40 @@
       color: #38bdf8;
     }
 
-    /* دکمه‌های شبکه‌های اجتماعی پایین کارت */
-    .social-btn {
-      width: 38px;
-      height: 38px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 10px;
-      background: rgba(255, 255, 255, 0.04);
+    /* کارت‌های رنک */
+    .rank-card {
+      background: rgba(0, 0, 0, 0.5);
       border: 1px solid rgba(255, 255, 255, 0.08);
-      color: #94a3b8;
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 12px;
+      text-align: left;
       transition: all 0.2s;
-      text-decoration: none;
     }
-    .social-btn:hover {
-      color: #fff;
+    [dir="rtl"] .rank-card { text-align: right; }
+    .rank-card:hover {
       transform: translateY(-2px);
-      background: rgba(255, 255, 255, 0.1);
-      border-color: rgba(255, 255, 255, 0.25);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+    .rank-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+    }
+    .badge-vip { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
+    .badge-vipplus { background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); }
+    .badge-mvp { background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); }
+
+    .rank-btn {
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
     }
 
     /* سوئیچ زبان */
@@ -258,10 +279,9 @@
     .lang-btn.active {
       background: #38bdf8;
       color: #050505;
-      box-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
     }
 
-    /* باکس وضعیت آنلاین سرور */
+    /* نشانگر وضعیت سرور */
     .status-badge {
       display: inline-flex;
       align-items: center;
@@ -270,10 +290,9 @@
       border-radius: 9999px;
       font-size: 12px;
       font-weight: 600;
-      letter-spacing: 0.3px;
       background: rgba(255, 255, 255, 0.04);
       border: 1px solid rgba(255, 255, 255, 0.08);
-      margin-bottom: 20px;
+      margin-bottom: 18px;
     }
     .status-dot {
       width: 8px;
@@ -290,15 +309,25 @@
       background: #ef4444;
       box-shadow: 0 0 10px #ef4444;
     }
-    @keyframes pulseDot {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.4; }
+    @keyframes pulseDot { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+    /* مدال خرید */
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(8px);
+      z-index: 50;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
     }
+    .modal-backdrop.show { display: flex; }
   </style>
 </head>
 <body>
 
-  <!-- هاله‌های نوری محو پشت صحنه -->
   <div class="ambient-glow glow-cyan"></div>
   <div class="ambient-glow glow-purple"></div>
 
@@ -308,67 +337,158 @@
     <button class="lang-btn" id="btn-fa" onclick="setLanguage('fa')">FA</button>
   </div>
 
-  <!-- پس‌زمینه شناور مربعی (۱۰ تایی با رنگ‌های مختلف) -->
+  <!-- پس‌زمینه شناور مربعی -->
   <div class="bg-squares">
     <span></span><span></span><span></span><span></span><span></span>
     <span></span><span></span><span></span><span></span><span></span>
   </div>
 
-  <!-- کارت مرکزی -->
+  <!-- کارت اصلی -->
   <div class="card">
-    <div class="status-badge">
-      <span class="status-dot" id="server-dot"></span>
-      <span id="server-status-text" data-i18n="checking">Checking server...</span>
-    </div>
-
-    <!-- لوگو و آیکون مکعبی سرور -->
-    <div class="w-14 h-14 mx-auto mb-3 rounded-2xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-sky-500/30">
-      <i class="fa-solid fa-cube text-white text-2xl"></i>
-    </div>
-
-    <h1 class="brand-title text-4xl font-black mb-1">HIVEMC</h1>
-    <p class="text-xs text-slate-400 mb-6 font-medium" data-i18n="subtitle">Official Bedrock & PocketMine Server</p>
-
-    <!-- کادر اطلاعات سرور -->
-    <div class="bg-black/60 border border-white/5 rounded-2xl p-4 mb-4 text-left shadow-inner">
-      <div class="flex justify-between items-center text-sm py-1.5 border-b border-white/5">
-        <span class="text-slate-400 text-xs font-medium" data-i18n="lbl_ip">Server IP:</span>
-        <span class="font-mono text-sky-400 select-all font-semibold">sv2.tgmc.ir</span>
+    
+    <!-- تب‌های انتخاب بخش -->
+    <div class="tab-bar">
+      <div class="tab-item active" id="tab-home" onclick="switchTab('home')" data-i18n="tab_home">
+        <i class="fa-solid fa-server mr-1"></i> Server
       </div>
-      <div class="flex justify-between items-center text-sm py-1.5 border-b border-white/5 mt-1">
-        <span class="text-slate-400 text-xs font-medium" data-i18n="lbl_port">Port:</span>
-        <span class="font-mono text-sky-400 select-all font-semibold">27235</span>
-      </div>
-      <div class="flex justify-between items-center text-sm py-1.5 mt-1">
-        <span class="text-slate-400 text-xs font-medium" data-i18n="lbl_players">Players Online:</span>
-        <span id="player-count" class="font-mono font-bold text-emerald-400 text-sm">0 / 0</span>
+      <div class="tab-item" id="tab-ranks" onclick="switchTab('ranks')" data-i18n="tab_ranks">
+        <i class="fa-solid fa-crown mr-1"></i> Ranks & Store
       </div>
     </div>
 
-    <!-- دکمه کپی آدرس سرور با افکت چرخان -->
-    <div class="rotating-border-btn" onclick="copyServerAddress()">
-      <span id="btn-copy-text" data-i18n="btn_copy">
-        <i class="fa-regular fa-copy text-sky-400"></i> Copy Server IP
-      </span>
+    <!-- بخش اول: مشخصات و اتصال سرور -->
+    <div id="view-home">
+      <div class="status-badge">
+        <span class="status-dot" id="server-dot"></span>
+        <span id="server-status-text" data-i18n="checking">Checking server...</span>
+      </div>
+
+      <div class="w-14 h-14 mx-auto mb-3 rounded-2xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-sky-500/30">
+        <i class="fa-solid fa-cube text-white text-2xl"></i>
+      </div>
+
+      <h1 class="brand-title text-4xl font-black mb-1">HIVEMC</h1>
+      <p class="text-xs text-slate-400 mb-6 font-medium" data-i18n="subtitle">Official Bedrock & PocketMine Server</p>
+
+      <div class="bg-black/60 border border-white/5 rounded-2xl p-4 mb-4 text-left shadow-inner">
+        <div class="flex justify-between items-center text-sm py-1.5 border-b border-white/5">
+          <span class="text-slate-400 text-xs font-medium" data-i18n="lbl_ip">Server IP:</span>
+          <span class="font-mono text-sky-400 select-all font-semibold">sv2.tgmc.ir</span>
+        </div>
+        <div class="flex justify-between items-center text-sm py-1.5 border-b border-white/5 mt-1">
+          <span class="text-slate-400 text-xs font-medium" data-i18n="lbl_port">Port:</span>
+          <span class="font-mono text-sky-400 select-all font-semibold">27235</span>
+        </div>
+        <div class="flex justify-between items-center text-sm py-1.5 mt-1">
+          <span class="text-slate-400 text-xs font-medium" data-i18n="lbl_players">Players Online:</span>
+          <span id="player-count" class="font-mono font-bold text-emerald-400 text-sm">0 / 0</span>
+        </div>
+      </div>
+
+      <div class="rotating-border-btn" onclick="copyServerAddress()">
+        <span id="btn-copy-text" data-i18n="btn_copy">
+          <i class="fa-regular fa-copy text-sky-400"></i> Copy Server IP
+        </span>
+      </div>
+
+      <a href="minecraft://?addExternalServer=Hivemc|sv2.tgmc.ir:27235" class="quick-join-btn">
+        <i class="fa-solid fa-gamepad text-xs"></i>
+        <span data-i18n="quick_join">Direct Play / Add to Game</span>
+      </a>
     </div>
 
-    <!-- دکمه ورود مستقیم به بازی (مخصوص بازیکنان گوشی) -->
-    <a href="minecraft://?addExternalServer=Hivemc|sv2.tgmc.ir:27235" class="quick-join-btn">
-      <i class="fa-solid fa-gamepad text-xs"></i>
-      <span data-i18n="quick_join">Direct Play / Add to Game</span>
-    </a>
+    <!-- بخش دوم: فروشگاه رنک‌ها -->
+    <div id="view-ranks" class="hidden">
+      <div class="mb-5 text-center">
+        <h2 class="text-2xl font-black text-white" data-i18n="ranks_title">Server Ranks</h2>
+        <p class="text-xs text-slate-400 mt-1" data-i18n="ranks_desc">Support Hivemc and unlock exclusive perks</p>
+      </div>
 
-    <!-- بخش شبکه‌های اجتماعی سرور -->
+      <!-- رنک VIP -->
+      <div class="rank-card border-emerald-500/30">
+        <div class="flex justify-between items-center mb-2">
+          <span class="rank-badge badge-vip">VIP</span>
+          <span class="text-sm font-bold text-emerald-400" data-i18n="price_vip">50,000 T</span>
+        </div>
+        <ul class="text-xs text-slate-300 space-y-1 mb-3">
+          <li><i class="fa-solid fa-check text-emerald-400 mr-1.5"></i> <span data-i18n="vip_f1">[VIP] Chat Prefix & Tag</span></li>
+          <li><i class="fa-solid fa-check text-emerald-400 mr-1.5"></i> <span data-i18n="vip_f2">Fly in Lobby (/fly)</span></li>
+          <li><i class="fa-solid fa-check text-emerald-400 mr-1.5"></i> <span data-i18n="vip_f3">+2 SetHome Limits</span></li>
+        </ul>
+        <button onclick="openCheckout('VIP', '50,000 T')" class="rank-btn w-full bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40" data-i18n="btn_buy">
+          Purchase VIP
+        </button>
+      </div>
+
+      <!-- رنک VIP+ -->
+      <div class="rank-card border-sky-500/30">
+        <div class="flex justify-between items-center mb-2">
+          <span class="rank-badge badge-vipplus">VIP+</span>
+          <span class="text-sm font-bold text-sky-400" data-i18n="price_vipplus">90,000 T</span>
+        </div>
+        <ul class="text-xs text-slate-300 space-y-1 mb-3">
+          <li><i class="fa-solid fa-check text-sky-400 mr-1.5"></i> <span data-i18n="vipplus_f1">All VIP Perks Included</span></li>
+          <li><i class="fa-solid fa-check text-sky-400 mr-1.5"></i> <span data-i18n="vipplus_f2">Exclusive Death Particles</span></li>
+          <li><i class="fa-solid fa-check text-sky-400 mr-1.5"></i> <span data-i18n="vipplus_f3">+5 SetHome Limits & Custom Pets</span></li>
+        </ul>
+        <button onclick="openCheckout('VIP+', '90,000 T')" class="rank-btn w-full bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/40" data-i18n="btn_buy">
+          Purchase VIP+
+        </button>
+      </div>
+
+      <!-- رنک MVP -->
+      <div class="rank-card border-amber-500/30">
+        <div class="flex justify-between items-center mb-2">
+          <span class="rank-badge badge-mvp">MVP</span>
+          <span class="text-sm font-bold text-amber-400" data-i18n="price_mvp">150,000 T</span>
+        </div>
+        <ul class="text-xs text-slate-300 space-y-1 mb-3">
+          <li><i class="fa-solid fa-check text-amber-400 mr-1.5"></i> <span data-i18n="mvp_f1">Priority Queue (Join Full Server)</span></li>
+          <li><i class="fa-solid fa-check text-amber-400 mr-1.5"></i> <span data-i18n="mvp_f2">Access to All Capes & Cosmetics</span></li>
+          <li><i class="fa-solid fa-check text-amber-400 mr-1.5"></i> <span data-i18n="mvp_f3">Custom Nickname & RGB Chat</span></li>
+        </ul>
+        <button onclick="openCheckout('MVP', '150,000 T')" class="rank-btn w-full bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40" data-i18n="btn_buy">
+          Purchase MVP
+        </button>
+      </div>
+    </div>
+
+    <!-- شبکه‌های اجتماعی پایین کارت -->
     <div class="mt-5 pt-4 border-t border-white/5 flex items-center justify-center gap-3">
-      <a href="#" class="social-btn" title="Discord"><i class="fa-brands fa-discord"></i></a>
-      <a href="#" class="social-btn" title="Telegram"><i class="fa-brands fa-telegram"></i></a>
-      <a href="#" class="social-btn" title="YouTube"><i class="fa-brands fa-youtube"></i></a>
+      <a href="#" class="w-9 h-9 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 flex items-center justify-center text-slate-400 hover:text-white transition"><i class="fa-brands fa-discord"></i></a>
+      <a href="#" class="w-9 h-9 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 flex items-center justify-center text-slate-400 hover:text-white transition"><i class="fa-brands fa-telegram"></i></a>
+    </div>
+  </div>
+
+  <!-- پنجره خرید رنک (Modal) -->
+  <div id="checkout-modal" class="modal-backdrop">
+    <div class="bg-[#0f1118] border border-white/15 rounded-2xl p-6 w-full max-w-sm text-center relative shadow-2xl">
+      <button onclick="closeCheckout()" class="absolute top-4 right-4 text-slate-400 hover:text-white">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+      <div class="w-12 h-12 rounded-xl bg-sky-500/20 text-sky-400 flex items-center justify-center mx-auto mb-3">
+        <i class="fa-solid fa-cart-shopping text-xl"></i>
+      </div>
+      <h3 class="text-lg font-bold text-white mb-1" id="modal-rank-name">Rank Checkout</h3>
+      <p class="text-xs text-slate-400 mb-4" id="modal-rank-price">Price: 0 T</p>
+      
+      <div class="text-left mb-4">
+        <label class="block text-xs text-slate-400 mb-1" data-i18n="lbl_gamertag">Minecraft Gamertag (Xbox Name):</label>
+        <input type="text" id="gamertag-input" placeholder="e.g. Player123" class="w-full bg-black/60 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-sky-500">
+      </div>
+
+      <a id="btn-modal-contact" href="https://t.me/" target="_blank" class="w-full block py-2.5 bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-sm rounded-xl transition mb-2" data-i18n="modal_submit">
+        Order via Support
+      </a>
+      <p class="text-[11px] text-slate-500" data-i18n="modal_note">Instant activation upon admin verification</p>
     </div>
   </div>
 
   <script>
     const translations = {
       en: {
+        tab_home: '<i class="fa-solid fa-server mr-1"></i> Server',
+        tab_ranks: '<i class="fa-solid fa-crown mr-1"></i> Ranks & Store',
         checking: "Checking server...",
         online: "Server Online",
         offline: "Server Offline",
@@ -378,9 +498,29 @@
         lbl_players: "Players Online:",
         btn_copy: '<i class="fa-regular fa-copy text-sky-400"></i> Copy Server IP',
         copied: '<i class="fa-solid fa-check text-emerald-400"></i> Copied to Clipboard!',
-        quick_join: "Direct Play / Add to Game"
+        quick_join: "Direct Play / Add to Game",
+        ranks_title: "Server Ranks",
+        ranks_desc: "Support Hivemc and unlock exclusive perks",
+        price_vip: "$1.99 / 50k T",
+        price_vipplus: "$3.49 / 90k T",
+        price_mvp: "$5.99 / 150k T",
+        vip_f1: "[VIP] Chat Prefix & Tag",
+        vip_f2: "Fly in Lobby (/fly)",
+        vip_f3: "+2 SetHome Limits",
+        vipplus_f1: "All VIP Perks Included",
+        vipplus_f2: "Exclusive Death Particles",
+        vipplus_f3: "+5 SetHome Limits & Custom Pets",
+        mvp_f1: "Priority Queue (Join Full Server)",
+        mvp_f2: "Access to All Capes & Cosmetics",
+        mvp_f3: "Custom Nickname & RGB Chat",
+        btn_buy: "Purchase Rank",
+        lbl_gamertag: "Minecraft Gamertag (Xbox Name):",
+        modal_submit: "Order via Support",
+        modal_note: "Instant activation upon admin verification"
       },
       fa: {
+        tab_home: '<i class="fa-solid fa-server ml-1"></i> سرور',
+        tab_ranks: '<i class="fa-solid fa-crown ml-1"></i> رنک‌ها و فروشگاه',
         checking: "در حال بررسی سرور...",
         online: "سرور فعال است",
         offline: "سرور آفلاین است",
@@ -390,7 +530,25 @@
         lbl_players: "بازیکنان آنلاین:",
         btn_copy: '<i class="fa-regular fa-copy text-sky-400"></i> کپی آدرس سرور',
         copied: '<i class="fa-solid fa-check text-emerald-400"></i> آدرس کپی شد!',
-        quick_join: "اتصال مستقیم / افزودن به ماینکرفت"
+        quick_join: "اتصال مستقیم / افزودن به ماینکرفت",
+        ranks_title: "فروشگاه رنک‌های سرور",
+        ranks_desc: "با خرید رنک از سرور حمایت کنید و قابلیت‌های ویژه بگیرید",
+        price_vip: "۵۰,۰۰۰ تومان",
+        price_vipplus: "۹۰,۰۰۰ تومان",
+        price_mvp: "۱۵۰,۰۰۰ تومان",
+        vip_f1: "تگ و پیشوند اختصاصی [VIP] در چت",
+        vip_f2: "امکان پرواز در لابی (/fly)",
+        vip_f3: "افزایش سقف خانه (+2 SetHome)",
+        vipplus_f1: "شامل تمامی امکانات رنک VIP",
+        vipplus_f2: "افکت اختصاصی مرگ (Death Particles)",
+        vipplus_f3: "امکان انتخاب پت شخصی و ۵ خانه",
+        mvp_f1: "ورود مستقیم حتی هنگام پر بودن سرور",
+        mvp_f2: "دسترسی به تمام شنل‌ها و کاستوم‌ها",
+        mvp_f3: "تغییر نام دلخواه و چت رنگی RGB",
+        btn_buy: "خرید این رنک",
+        lbl_gamertag: "گیمرتگ ماینکرفت (Xbox Name):",
+        modal_submit: "سفارش از طریق پشتیبانی",
+        modal_note: "فعال‌سازی سریع پس از تایید توسط ادمین"
       }
     };
 
@@ -411,6 +569,24 @@
           el.innerHTML = translations[lang][key];
         }
       });
+    }
+
+    function switchTab(tab) {
+      const isHome = tab === 'home';
+      document.getElementById('view-home').classList.toggle('hidden', !isHome);
+      document.getElementById('view-ranks').classList.toggle('hidden', isHome);
+      document.getElementById('tab-home').classList.toggle('active', isHome);
+      document.getElementById('tab-ranks').classList.toggle('active', !isHome);
+    }
+
+    function openCheckout(rankName, price) {
+      document.getElementById('modal-rank-name').innerText = `Purchase ${rankName}`;
+      document.getElementById('modal-rank-price').innerText = `Price: ${price}`;
+      document.getElementById('checkout-modal').classList.add('show');
+    }
+
+    function closeCheckout() {
+      document.getElementById('checkout-modal').classList.remove('show');
     }
 
     async function updateServerStatus() {
