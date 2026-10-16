@@ -7,11 +7,15 @@
 
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Socket.io client (served by your backend via Worker proxy) -->
+  <!-- Socket.io client -->
   <script src="/socket.io/socket.io.js"></script>
 
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
     body {
       background-color: #050505;
@@ -27,25 +31,29 @@
       padding: 20px;
     }
 
-    /* Floating squares background */
+    /* Floating White Squares Background */
     .bg-squares {
       position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
       overflow: hidden;
       z-index: 0;
       pointer-events: none;
     }
+
     .bg-squares li {
       position: absolute;
       display: block;
       list-style: none;
-      background: rgba(255,255,255,0.08);
-      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.18);
       border-radius: 4px;
       bottom: -150px;
       animation: animateSquares 20s linear infinite;
     }
+
     .bg-squares li:nth-child(1)  { left: 25%; width: 70px; height: 70px; animation-delay: 0s;  animation-duration: 18s; }
     .bg-squares li:nth-child(2)  { left: 10%; width: 25px; height: 25px; animation-delay: 2s;  animation-duration: 12s; }
     .bg-squares li:nth-child(3)  { left: 70%; width: 20px; height: 20px; animation-delay: 4s;  animation-duration: 14s; }
@@ -62,8 +70,11 @@
       100% { transform: translateY(-115vh) rotate(540deg); opacity: 0; }
     }
 
-    /* Content above background */
-    .card, aside { position: relative; z-index: 10; }
+    /* Content placement */
+    .card, aside {
+      position: relative;
+      z-index: 10;
+    }
 
     .card {
       background: rgba(18, 18, 22, 0.75);
@@ -78,8 +89,14 @@
       margin-bottom: 20px;
     }
 
-    /* Uiverse-style glow input */
-    .container { margin: 20px auto 10px auto; display: flex; justify-content: center; align-items: center; }
+    /* Modern Glow Input */
+    .container {
+      margin: 20px auto 10px auto;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
     .label {
       position: relative;
       display: flex;
@@ -92,10 +109,12 @@
       background: rgba(10, 10, 14, 0.85);
       transition: all 0.3s ease;
     }
+
     .label:focus-within {
       border-color: #ffffff;
       box-shadow: 0 0 12px rgba(255, 255, 255, 0.4);
     }
+
     .label .icon {
       position: absolute;
       top: 50%;
@@ -105,7 +124,11 @@
       color: #71717a;
       pointer-events: none;
     }
-    .label:focus-within .icon { color: #ffffff; }
+
+    .label:focus-within .icon {
+      color: #ffffff;
+    }
+
     .label .input {
       background-color: transparent;
       outline: none;
@@ -116,63 +139,79 @@
       padding-right: 32px;
       font-family: inherit;
     }
-    .label .input::placeholder { color: #52525b; }
 
-    /* Cyberpunk button */
-    .button {
+    .label .input::placeholder {
+      color: #52525b;
+    }
+
+    /* Rotating Border Button (حرکت پیوسته نور دور تا دور دکمه) */
+    .rotating-border-btn {
       position: relative;
       cursor: pointer;
       border: none;
-      width: 150px;
-      height: 44px;
-      background: #111;
-      color: #fff;
+      width: 160px;
+      height: 46px;
+      border-radius: 8px;
+      background: #0f0f13;
+      padding: 2px;
+      overflow: hidden;
+      margin-top: 20px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      margin-top: 20px;
+    }
+
+    .rotating-border-btn::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: conic-gradient(
+        transparent,
+        transparent 60%,
+        rgba(255, 255, 255, 0.2) 75%,
+        #ffffff 100%
+      );
+      animation: rotateBorder 3s linear infinite;
+    }
+
+    .rotating-border-btn:hover::before {
+      animation-duration: 1.5s;
+    }
+
+    .rotating-border-btn-inner {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      height: 100%;
+      background: #111116;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
       font-size: 14px;
-      font-weight: bold;
-      border-radius: 4px;
-      letter-spacing: 0.5px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      transition: background 0.2s ease;
     }
-    .text { position: relative; z-index: 1; }
-    .button::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      opacity: 0;
-      background:
-        radial-gradient(circle at 50% 50%, #0000 0, #0000 20%, #111111aa 50%),
-        radial-gradient(ellipse 100% 100%, #fff, #fff0);
-      background-size: 3px 3px, auto auto;
-      transition: 0.3s;
+
+    .rotating-border-btn:hover .rotating-border-btn-inner {
+      background: #181820;
     }
-    .button:hover::before { opacity: 0.3; }
 
-    .a {
-      pointer-events: none;
-      position: absolute;
-      --w: 2px;
-      --t: -40px;
-      --s: calc(var(--t) * -1);
-      --e: calc(100% + var(--t));
-      --g: #fff0, #fff3 var(--s), #fffa var(--s), #fff, #fffa var(--e), #fff3 var(--e), #fff0;
+    @keyframes rotateBorder {
+      0% {
+        transform: rotate(0deg);
+      }
+      100% {
+        transform: rotate(360deg);
+      }
     }
-    .a::before { content: ""; position: absolute; inset: 0; background: inherit; filter: blur(4px); z-index: -2; }
-    .a::after  { content: ""; position: absolute; inset: 0; background: inherit; filter: blur(12px); z-index: -2; opacity: 0.5; }
 
-    .top    { top: 0; left: 0; width: 100%; height: var(--w); background: linear-gradient(90deg,  var(--g)); animation: a-t 3s linear infinite; }
-    .bottom { bottom: 0; left: 0; width: 100%; height: var(--w); background: linear-gradient(90deg, var(--g)); animation: a-b 3s linear infinite; }
-    .left   { top: 0; left: 0; width: var(--w); height: 100%; background: linear-gradient(180deg, var(--g)); animation: a-l 3s linear infinite; }
-    .right  { top: 0; right: 0; width: var(--w); height: 100%; background: linear-gradient(180deg, var(--g)); animation: a-r 3s linear infinite; }
-
-    @keyframes a-t { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
-    @keyframes a-b { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
-    @keyframes a-l { 0% { transform: translateY(100%); } 100% { transform: translateY(-100%); } }
-    @keyframes a-r { 0% { transform: translateY(-100%); } 100% { transform: translateY(100%); } }
-
-    /* Terminal */
+    /* Hacker Terminal */
     .terminal {
       background: rgba(10, 10, 14, 0.85);
       border: 1px solid rgba(255, 255, 255, 0.1);
@@ -185,34 +224,30 @@
 </head>
 
 <body>
-  <!-- Background -->
+  <!-- Floating Squares Background -->
   <ul class="bg-squares">
     <li></li><li></li><li></li><li></li><li></li>
     <li></li><li></li><li></li><li></li><li></li>
   </ul>
 
-  <!-- Login -->
+  <!-- Main Card / Login Section -->
   <div class="card" id="loginSection">
     <h1 class="text-xl font-bold tracking-wider mb-2 text-white">PROXIMITY VOICE CHAT</h1>
     <p class="text-sm text-neutral-400 mb-6">Enter your Minecraft username to connect</p>
 
     <div class="container">
       <label class="label">
-        <input type="text" id="usernameInput" class="input" placeholder="Username..." autocomplete="off" />
-        <svg class="icon" xmlns="
-                  <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <input type="text" id="usernameInput" class="input" placeholder="Username..." autocomplete="off">
+        <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
           <circle cx="12" cy="7" r="4"></circle>
         </svg>
       </label>
     </div>
 
-    <button class="button" id="joinBtn">
-      <span class="a top"></span>
-      <span class="a left"></span>
-      <span class="a bottom"></span>
-      <span class="a right"></span>
-      <span class="text">CONNECT</span>
+    <!-- دکمه با خط نوری چرخان دور لبه‌ها -->
+    <button class="rotating-border-btn" id="joinBtn">
+      <span class="rotating-border-btn-inner">CONNECT</span>
     </button>
   </div>
 
