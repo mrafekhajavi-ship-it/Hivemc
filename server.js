@@ -1,53 +1,59 @@
 const express = require('express');
-const http = require('http');
-const { Server } = require('socket.io');
 const path = require('path');
 const bedrock = require('bedrock-protocol');
 
-
 const app = express();
-const server = http.createServer(app);
-const io = new Server(server, {
-  cors: { origin: "*" }
-});
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// ذخیره موقعیت مکانی بازیکنان
-let playerPositions = {};
+// مشخصات سرور پاکت‌ماین
+const MINECRAFT_HOST = 'sv2.tgmc.ir';
+const MINECRAFT_PORT = 27235;
 
-// دریافت مختصات از سمت سرور ماینکرفت
-app.post('/api/update-positions', (req, res) => {
-  playerPositions = req.body || {};
-  io.emit('positions_updated', playerPositions);
-  res.sendStatus(200);
-});
+// سیستم کش هوشمند (به‌روزرسانی حداکثر هر ۵ ثانیه برای سبکی و سرعت بالا)
+let cachedStatus = { online: false, currentPlayers: 0, maxPlayers: 0 };
+let lastPingTime = 0;
 
-io.on('connection', (socket) => {
-  let playerName = null;
-
-  socket.on('register', (name) => {
-    playerName = name.toLowerCase().trim();
-    socket.join('proximity_world');
-    socket.emit('registered', { name: playerName });
-  });
-
-  // ارسال داده‌های صوتی بین کلاینت‌ها (WebRTC Signaling)
-  socket.on('signal', (data) => {
-    io.to(data.targetSocketId).emit('signal', {
-      senderSocketId: socket.id,
-      senderName: playerName,
-      signal: data.signal
+async function fetchServerStatus() {
+  const now = Date.now();
+  if (now - lastPingTime < 5000) {
+    return cachedStatus;
+  }
+  
+  try {
+    const res = await bedrock.ping({
+      host: MINECRAFT_HOST,
+      port: MINECRAFT_PORT,
+      timeout: 3000
     });
-  });
 
-  socket.on('disconnect', () => {
-    // پاکسازی موقع قطع ارتباط
-  });
+    cachedStatus = {
+      online: true,
+      currentPlayers: res.playersOnline || 0,
+      maxPlayers: res.playersMax || 0,
+      motd: res.motd ? res.motd.clean : ''
+    };
+    lastPingTime = now;
+  } catch (err) {
+    cachedStatus = {
+      online: false,
+      currentPlayers: 0,
+      maxPlayers: 0,
+      error: 'Server unreachable'
+    };
+  }
+  return cachedStatus;
+}
+
+// مسیر API وضعیت و تعداد پلیرهای آنلاین
+app.get('/api/server-status', async (req, res) => {
+  const status = await fetchServerStatus();
+  res.json(status);
 });
 
+// اجرای سرور
 const PORT = process.env.PORT || 10000;
-server.listen(PORT, () => {
-  console.log(`Server listening on port ${PORT}`);
+app.listen(PORT, () => {
+  console.log(`Hivemc Server running on port ${PORT}`);
 });
