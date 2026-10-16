@@ -1,5 +1,14 @@
-"dependencies": {
-  "bedrock-protocol": "^1.2.0",
-  "express": "^4.18.2",
-  "socket.io": "^4.7.2"
+{
+  "name": "Hivemc",
+  "version": "1.0.0",
+  "description": "Larp Hivemc",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "bedrock-protocol": "^1.2.0",
+    "express": "^4.18.2",
+    "socket.io": "^4.7.2"
+  }
 }
