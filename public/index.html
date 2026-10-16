@@ -41,12 +41,11 @@
     .card {
       position: relative; z-index: 10;
       width: min(92%, 400px);
-      height: 280px;
-      /* اینجا مقدار بالای پدینگ را کمتر کردیم تا متن‌ها بیایند بالاتر */
+      height: 310px; /* ارتفاع کل کادر رو کمی بیشتر کردیم که جا بشه */
       padding: 25px 24px 20px 24px;
       display: flex;
       flex-direction: column;
-      justify-content: flex-start; /* محتوا از بالا چیده می‌شود و می‌آید بالا */
+      justify-content: flex-start;
       align-items: center;
       border: 1px solid rgba(255,255,255,0.15);
       border-radius: 20px;
@@ -58,37 +57,30 @@
     .card > * {
       width: 100%;
     }
-        .input-wrap {
-      width: 75%; /* عرض کادر (می‌تونی بکنی 60% تا باریک‌تر بشه، یا 90% تا پهن‌تر بشه) */
-      margin: 0 auto 15px auto; /* این دستور باعث میشه کادر دقیقاً وسط قرار بگیره */
+    .input-wrap {
+      width: 80%; /* عرض کادر نام کاربری */
+      margin: 0 auto 15px auto;
       padding: 1px; border-radius: 12px;
       background: #333; transition: 0.3s;
     }
-
     .input-wrap:focus-within {
       background: #fff;
       box-shadow: 0 0 16px rgba(255,255,255,0.4);
     }
-        input {
-      width: 100%; border: 0; outline: 0;
+    input {
+      width: 100%; 
+      height: 48px; /* ارتفاع دلخواه برای کادر (می‌تونی کم و زیادش کنی مثلاً 55px) */
+      border: 0; outline: 0;
       border-radius: 11px; 
-      
-      padding: 40px; /* این خط ارتفاع (بلندی) کادر را تنظیم می‌کند! */
-      
+      padding: 0 15px; 
       background: #090909; color: #fff; text-align: center; font-size: 15px;
     }
-
-    
-        .rotating-border-btn {
+    .rotating-border-btn {
       position: relative; overflow: hidden; width: 70%;
-      
-      /* این شکلی بنویس: بالا 25 پیکسل فاصله، چپ و راست به صورت خودکار وسط */
-      margin: 25px auto 0 auto; 
-      
+      margin: 20px auto 0 auto; 
       padding: 2px; border: 0; border-radius: 12px;
       background: transparent; cursor: pointer;
     }
-
     .rotating-border-btn::before {
       content: ""; position: absolute; inset: -150%; z-index: 1;
       background: conic-gradient(transparent 0deg, transparent 240deg, #fff 300deg, transparent 360deg);
