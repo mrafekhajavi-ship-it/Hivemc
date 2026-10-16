@@ -10,5 +10,10 @@
     "bedrock-protocol": "latest",
     "express": "^4.18.2",
     "socket.io": "^4.7.2"
-  }
+  },
+  "dependencies": {
+  "express": "^4.18.2",
+  "rcon-client": "^4.2.1"
+     }
+   }
 }
