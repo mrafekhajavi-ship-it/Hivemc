@@ -56,42 +56,36 @@ app.get('/api/server-status', async (req, res) => {
 
 // مسیر خرید رنک و اجرای RCON (متصل به RankSystem)
 app.post('/api/buy-rank', async (req, res) => {
-    const { gamertag, rank } = req.body;
+    const { username, rank } = req.body;
 
-    // بررسی نام کاربری
-    if (!gamertag || typeof gamertag !== 'string' || gamertag.trim() === '') {
-        return res.status(400).json({ success: false, message: 'Invalid gamertag.' });
-    }
-
-    // رنک‌های مجاز دقیقاً مطابق پلاگین RankSystem شما
     const validRanks = ['ultra', 'Elite', 'Legend'];
-    if (!validRanks.includes(rank)) {
-        return res.status(400).json({ success: false, message: 'Invalid rank selected.' });
+    if (!username || !rank || !validRanks.includes(rank)) {
+        return res.status(400).json({ success: false, message: 'Invalid username or rank selected.' });
     }
+
+    const cleanUsername = username.replace(/[^a-zA-Z0-9_ ]/g, '').trim();
 
     try {
-        // اتصال به RCON با متغیرهای محیطی Render
-        const rcon = new RCON({
-            host: process.env.RCON_HOST,
-            port: parseInt(process.env.RCON_PORT || '19132'),
-            password: process.env.RCON_PASSWORD
+        const rcon = await Rcon.connect({
+            host: process.env.RCON_HOST || 'sv2.tgmc.ir',
+            port: parseInt(process.env.RCON_PORT || '19132', 10),
+            password: process.env.RCON_PASSWORD || '######################',
+            timeout: 5000
         });
 
-        await rcon.connect();
-
-        // اجرای دستور روی کنسول سرور ماینکرفت
-        const commandResponse = await rcon.send(`ranksystem set "${gamertag.trim()}" ${rank}`);
-        
+        // اجرای دستور تنظیم رنک در RankSystem
+        const response = await rcon.send(`setrank "${cleanUsername}" ${rank}`);
         await rcon.end();
 
-        console.log(`Rank command sent for ${gamertag}: ${rank} -> Response: ${commandResponse}`);
-        return res.json({ success: true, message: 'Rank delivered successfully!' });
+        console.log(`RCON Response: ${response}`);
+        return res.json({ success: true, message: `Rank ${rank} was successfully applied to ${cleanUsername}!` });
 
-    } catch (error) {
-        console.error('RCON Error:', error);
+    } catch (err) {
+        console.error('RCON Error:', err);
         return res.status(500).json({ success: false, message: 'Server connection error (RCON failed).' });
     }
 });
+
 
 // اجرای سرور
 const PORT = process.env.PORT || 10000;
