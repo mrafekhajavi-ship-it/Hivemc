@@ -6,55 +6,46 @@ const path = require('path');
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
-  cors: { origin: "*", methods: ["GET", "POST"] }
+  cors: { origin: "*" }
 });
 
 app.use(express.json());
-
-// معرفی پوشه public برای فایل‌های فرانت‌اند
 app.use(express.static(path.join(__dirname, 'public')));
 
-// ارسال index.html از داخل پوشه public
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+// ذخیره موقعیت مکانی بازیکنان
+let playerPositions = {};
+
+// دریافت مختصات از سمت سرور ماینکرفت
+app.post('/api/update-positions', (req, res) => {
+  playerPositions = req.body || {};
+  io.emit('positions_updated', playerPositions);
+  res.sendStatus(200);
 });
 
 io.on('connection', (socket) => {
-  socket.on('join_room', ({ username, room }) => {
-    socket.username = username;
-    socket.room = room;
-    socket.join(room);
+  let playerName = null;
 
-    socket.to(room).emit('user_joined', { id: socket.id, username });
-
-    const roomClients = io.sockets.adapter.rooms.get(room);
-    const users = [];
-    if (roomClients) {
-      roomClients.forEach((clientId) => {
-        const clientSocket = io.sockets.sockets.get(clientId);
-        if (clientSocket) {
-          users.push({ id: clientSocket.id, username: clientSocket.username });
-        }
-      });
-    }
-    io.to(socket.id).emit('room_users', users);
+  socket.on('register', (name) => {
+    playerName = name.toLowerCase().trim();
+    socket.join('proximity_world');
+    socket.emit('registered', { name: playerName });
   });
 
+  // ارسال داده‌های صوتی بین کلاینت‌ها (WebRTC Signaling)
   socket.on('signal', (data) => {
-    io.to(data.to).emit('signal', {
-      from: socket.id,
+    io.to(data.targetSocketId).emit('signal', {
+      senderSocketId: socket.id,
+      senderName: playerName,
       signal: data.signal
     });
   });
 
   socket.on('disconnect', () => {
-    if (socket.room) {
-      socket.to(socket.room).emit('user_left', { id: socket.id, username: socket.username });
-    }
+    // پاکسازی موقع قطع ارتباط
   });
 });
 
 const PORT = process.env.PORT || 10000;
 server.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+  console.log(`Server listening on port ${PORT}`);
 });
