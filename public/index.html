@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Voice Chat Rooms</title>
+  <title>Proximity Voice Chat</title>
 
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="/socket.io/socket.io.js"></script>
@@ -20,227 +20,201 @@
       justify-content: center;
       min-height: 100vh;
       overflow-x: hidden;
-      padding: 20px;
+      position: relative;
     }
 
+    /* Floating Squares Background */
     .bg-squares {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      overflow: hidden; z-index: 0; pointer-events: none;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      z-index: 0;
+      pointer-events: none;
     }
+
     .bg-squares li {
-      position: absolute; display: block; list-style: none;
+      position: absolute;
+      display: block;
+      list-style: none;
+      width: 20px;
+      height: 20px;
       background: rgba(255, 255, 255, 0.18);
       border: 1px solid rgba(255, 255, 255, 0.35);
-      border-radius: 4px; bottom: -150px;
-      animation: animateSquares 20s linear infinite;
-    }
-    .bg-squares li:nth-child(1) { left: 25%; width: 70px; height: 70px; animation-duration: 18s; }
-    .bg-squares li:nth-child(2) { left: 10%; width: 25px; height: 25px; animation-duration: 12s; }
-    .bg-squares li:nth-child(3) { left: 70%; width: 20px; height: 20px; animation-duration: 14s; }
-    .bg-squares li:nth-child(4) { left: 40%; width: 60px; height: 60px; animation-duration: 16s; }
-
-    @keyframes animateSquares {
-      0%   { transform: translateY(0) rotate(0deg); opacity: 0.8; }
-      100% { transform: translateY(-115vh) rotate(540deg); opacity: 0; }
+      animation: animate 25s linear infinite;
+      bottom: -150px;
+      border-radius: 4px;
     }
 
-    .card, aside { position: relative; z-index: 10; }
+    .bg-squares li:nth-child(1) { left: 25%; width: 80px; height: 80px; animation-delay: 0s; }
+    .bg-squares li:nth-child(2) { left: 10%; width: 20px; height: 20px; animation-delay: 2s; animation-duration: 12s; }
+    
+          .bg-squares li:nth-child(3) {
+      left: 70%;
+      width: 20px;
+      height: 20px;
+      animation-delay: 4s;
+    }
+
+    .bg-squares li:nth-child(4) {
+      left: 40%;
+      width: 60px;
+      height: 60px;
+      animation-delay: 0s;
+      animation-duration: 18s;
+    }
+
+    .bg-squares li:nth-child(5) {
+      left: 65%;
+      width: 20px;
+      height: 20px;
+      animation-delay: 0s;
+    }
+
+    .bg-squares li:nth-child(6) {
+      left: 75%;
+      width: 110px;
+      height: 110px;
+      animation-delay: 3s;
+    }
+
+    .bg-squares li:nth-child(7) {
+      left: 35%;
+      width: 150px;
+      height: 150px;
+      animation-delay: 7s;
+    }
+
+    .bg-squares li:nth-child(8) {
+      left: 50%;
+      width: 25px;
+      height: 25px;
+      animation-delay: 15s;
+      animation-duration: 45s;
+    }
+
+    @keyframes animate {
+      0% {
+        transform: translateY(0) rotate(0deg);
+        opacity: 0.8;
+      }
+      100% {
+        transform: translateY(-1000px) rotate(720deg);
+        opacity: 0;
+      }
+    }
+
+    .page-content {
+      position: relative;
+      z-index: 1;
+      width: min(100% - 32px, 390px);
+    }
+
     .card {
-      background: rgba(18, 18, 22, 0.85);
-      backdrop-filter: blur(14px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 16px;
-      padding: 28px 24px;
-      width: 100%;
-      max-width: 460px;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+      padding: 28px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 20px;
+      background: rgba(18, 18, 18, 0.92);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
       text-align: center;
-      margin-bottom: 20px;
     }
 
-    .input-box {
-      width: 100%;
-      background: rgba(10, 10, 14, 0.85);
-      border: 2px solid #2e2e38;
-      border-radius: 8px;
-      padding: 12px 14px;
-      color: #e2e8f0;
-      font-size: 15px;
-      outline: none;
-      margin-bottom: 15px;
-      transition: all 0.3s ease;
+    .card h1 {
+      margin-bottom: 10px;
+      color: #fff;
+      font-size: 24px;
     }
-    .input-box:focus {
-      border-color: #ffffff;
-      box-shadow: 0 0 12px rgba(255, 255, 255, 0.4);
+
+    .subtitle {
+      margin-bottom: 24px;
+      color: #9ca3af;
+      font-size: 14px;
+    }
+
+    .username-input {
+      width: 100%;
+      padding: 14px;
+      border: 1px solid #454545;
+      border-radius: 10px;
+      outline: none;
+      background: #080808;
+      color: #fff;
+      text-align: center;
+      font-size: 16px;
+      transition: box-shadow 0.2s, border-color 0.2s;
+    }
+
+    .username-input:focus {
+      border-color: #fff;
+      box-shadow: 0 0 12px rgba(255, 255, 255, 0.35);
     }
 
     .rotating-border-btn {
-      position: relative; cursor: pointer; border: none;
-      width: 100%; height: 46px; border-radius: 8px;
-      background: #0f0f13; padding: 2px; overflow: hidden;
-      margin-top: 10px; display: inline-flex; align-items: center; justify-content: center;
+      position: relative;
+      display: block;
+      width: 100%;
+      margin-top: 18px;
+      padding: 2px;
+      overflow: hidden;
+      border: 0;
+      border-radius: 12px;
+      background: #fff;
+      cursor: pointer;
+      isolation: isolate;
     }
+
     .rotating-border-btn::before {
-      content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
-      background: conic-gradient(transparent, transparent 60%, rgba(255, 255, 255, 0.2) 75%, #ffffff 100%);
+      position: absolute;
+      z-index: -1;
+      top: -150%;
+      left: -25%;
+      width: 150%;
+      height: 400%;
+      background: conic-gradient(
+        transparent 0deg,
+        transparent 250deg,
+        #00e5ff 285deg,
+        #a855f7 320deg,
+        #fff 350deg,
+        transparent 360deg
+      );
+      content: "";
       animation: rotateBorder 3s linear infinite;
     }
-    @keyframes rotateBorder { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-    .rotating-border-btn-inner {
-      position: relative; z-index: 1; width: 100%; height: 100%;
-      background: #111116; border-radius: 6px; display: flex;
-      align-items: center; justify-content: center; color: #ffffff;
-      font-size: 14px; font-weight: 700; letter-spacing: 1px;
+    .rotating-border-btn span {
+      display: block;
+      padding: 13px;
+      border-radius: 10px;
+      background: #fff;
+      color: #050505;
+      font-weight: 700;
+      font-size: 16px;
+      transition: background 0.2s;
+    }
+
+    .rotating-border-btn:hover span {
+      background: #eaeaea;
+    }
+
+    @keyframes rotateBorder {
+      to { transform: rotate(360deg); }
+    }
+
+    #status {
+      min-height: 22px;
+      margin-top: 16px;
+      color: #a3a3a3;
+      font-size: 13px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .bg-squares li,
+      .rotating-border-btn::before {
+        animation: none;
+      }
     }
   </style>
 </head>
-
-<body>
-  <ul class="bg-squares">
-    <li></li><li></li><li></li><li></li>
-  </ul>
-
-  <!-- Login & Room Selection Section -->
-  <div class="card" id="loginSection">
-    <h1 class="text-xl font-bold tracking-wider mb-2 text-white">VOICE CHAT ROOMS</h1>
-    <p class="text-sm text-neutral-400 mb-6">Enter your name and join or create a room</p>
-
-    <input type="text" id="usernameInput" class="input-box" placeholder="Your Name..." autocomplete="off">
-    <input type="text" id="roomInput" class="input-box" placeholder="Room Name (e.g. public or secret123)..." value="public" autocomplete="off">
-
-    <button class="rotating-border-btn" id="joinBtn">
-      <span class="rotating-border-btn-inner">CONNECT TO ROOM</span>
-    </button>
-  </div>
-
-  <!-- Active Room Section -->
-  <div class="card" id="voiceSection" style="display: none;">
-    <h2 class="text-lg font-semibold text-emerald-400 mb-1" id="userGreeting">User: ...</h2>
-    <div id="roomBadge" class="text-xs text-neutral-300 font-mono mb-4 bg-white/5 py-1 px-2 rounded">Room: public</div>
-    
-    <div class="text-left bg-black/40 rounded-lg p-3 border border-white/5 mb-4">
-      <div class="text-xs font-semibold text-neutral-400 mb-2 uppercase tracking-wider">Users in this Room:</div>
-      <ul id="peersList" class="text-sm text-neutral-300 space-y-1 font-mono">
-        <li class="text-neutral-500 italic">No other users</li>
-      </ul>
-    </div>
-  </div>
-
-  <script>
-    const socket = io();
-    let localStream = null;
-    let username = '';
-    let roomName = '';
-    const peerConnections = {};
-    const peersAudio = {};
-
-    const rtcConfig = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
-
-    document.getElementById('joinBtn').addEventListener('click', async () => {
-      username = document.getElementById('usernameInput').value.trim().toLowerCase();
-      roomName = document.getElementById('roomInput').value.trim().toLowerCase();
-
-      if (!username) return alert('Please enter your name!');
-      if (!roomName) return alert('Please enter a room name!');
-
-      try {
-        localStream = await navigator.mediaDevices.getUserMedia({ 
-          audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }, 
-          video: false 
-        });
-      } catch (err) {
-        alert('Microphone access denied!');
-        return;
-      }
-
-      document.getElementById('loginSection').style.display = 'none';
-      document.getElementById('voiceSection').style.display = 'block';
-      document.getElementById('userGreeting').innerText = `User: ${username}`;
-      document.getElementById('roomBadge').innerText = `Room: ${roomName}`;
-
-      socket.emit('join_room', { username, room: roomName });
-    });
-
-    socket.on('room_users', (users) => {
-      updatePeersList(users);
-    });
-
-    socket.on('user_joined', async ({ id, username: remoteUser }) => {
-      const pc = createPeerConnection(id, remoteUser);
-      peerConnections[id] = pc;
-      localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
-
-      const offer = await pc.createOffer();
-      await pc.setLocalDescription(offer);
-      socket.emit('signal', { to: id, signal: { type: 'offer', sdp: offer } });
-    });
-
-    socket.on('signal', async ({ from, signal }) => {
-      let pc = peerConnections[from];
-      if (!pc) {
-        pc = createPeerConnection(from, 'peer');
-        peerConnections[from] = pc;
-        localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
-      }
-
-      if (signal.type === 'offer') {
-        await pc.setRemoteDescription(new RTCSessionDescription(signal.sdp));
-        const answer = await pc.createAnswer();
-        await pc.setLocalDescription(answer);
-        socket.emit('signal', { to: from, signal: { type: 'answer', sdp: answer } });
-      } else if (signal.type === 'answer') {
-        await pc.setRemoteDescription(new RTCSessionDescription(signal.sdp));
-      } else if (signal.candidate) {
-        await pc.addIceCandidate(new RTCIceCandidate(signal.candidate));
-      }
-    });
-
-    socket.on('user_left', ({ id, username: remoteUser }) => {
-      if (peerConnections[id]) {
-        peerConnections[id].close();
-        delete peerConnections[id];
-      }
-      if (peersAudio[remoteUser]) {
-        peersAudio[remoteUser].pause();
-        delete peersAudio[remoteUser];
-      }
-    });
-
-    function createPeerConnection(targetId, targetUsername) {
-      const pc = new RTCPeerConnection(rtcConfig);
-      pc.onicecandidate = (e) => {
-        if (e.candidate) {
-          socket.emit('signal', { to: targetId, signal: { candidate: e.candidate } });
-        }
-      };
-      pc.ontrack = (e) => {
-        let audio = peersAudio[targetUsername];
-        if (!audio) {
-          audio = new Audio();
-          audio.autoplay = true;
-          peersAudio[targetUsername] = audio;
-        }
-        audio.srcObject = e.streams[0];
-      };
-      return pc;
-    }
-
-    function updatePeersList(users) {
-      const list = document.getElementById('peersList');
-      list.innerHTML = '';
-      users.forEach(u => {
-        if (u.username !== username) {
-          const li = document.createElement('li');
-          li.innerText = '• ' + u.username;
-          list.appendChild(li);
-        }
-      });
-      if (list.children.length === 0) {
-        list.innerHTML = '<li class="text-neutral-500 italic">No other users</li>';
-      }
-    }
-  </script>
-</body>
-</html>
