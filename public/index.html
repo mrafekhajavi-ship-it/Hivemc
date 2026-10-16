@@ -58,10 +58,13 @@
     .card > * {
       width: 100%;
     }
-    .input-wrap {
-      margin-bottom: 15px; padding: 1px; border-radius: 12px;
+        .input-wrap {
+      width: 75%; /* عرض کادر (می‌تونی بکنی 60% تا باریک‌تر بشه، یا 90% تا پهن‌تر بشه) */
+      margin: 0 auto 15px auto; /* این دستور باعث میشه کادر دقیقاً وسط قرار بگیره */
+      padding: 1px; border-radius: 12px;
       background: #333; transition: 0.3s;
     }
+
     .input-wrap:focus-within {
       background: #fff;
       box-shadow: 0 0 16px rgba(255,255,255,0.4);
