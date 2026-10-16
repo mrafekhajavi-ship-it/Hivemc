@@ -1,13 +1,13 @@
 <!DOCTYPE html>
-<html lang="fa" dir="rtl">
+<html lang="en" dir="ltr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Minecraft Proximity Voice Chat</title>
   
-  <!-- کتابخانه برای استایل سریع ترمینال -->
+  <!-- Tailwind CSS for clean layout -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- کتابخانه سوکت برای اتصال به سرور رندر -->
+  <!-- Socket.io client -->
   <script src="/socket.io/socket.io.js"></script>
 
   <style>
@@ -41,7 +41,7 @@
       margin-bottom: 20px;
     }
 
-    /* From Uiverse.io by nazar-gavrylyk + تغییر رنگ سفید هنگام فوکوس */ 
+    /* Uiverse Input styling */ 
     .container {
       margin: 20px auto 10px auto;
       padding: 0;
@@ -49,7 +49,7 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      direction: ltr; /* برای چپ‌چین بودن نام کاربری */
+      direction: ltr;
     }
 
     .label {
@@ -65,7 +65,7 @@
       transition: all 0.3s ease;
     }
 
-    /* افکت سفید شدن دور کادر موقع کلیک روی اینپوت */
+    /* White glow on focus */
     .label:focus-within {
       border-color: #ffffff;
       box-shadow: 0 0 12px rgba(255, 255, 255, 0.5);
@@ -81,7 +81,6 @@
       pointer-events: none;
     }
 
-    /* سفید شدن آیکون هنگام کلیک */
     .label:focus-within .icon {
       color: #ffffff;
     }
@@ -105,7 +104,7 @@
       color: #ffffff;
     }
 
-    /* دکمه سایبرپانکی و کادر نوری Uiverse */
+    /* Cyberpunk Glowing Button */
     .button {
       position: relative;
       cursor: pointer;
@@ -121,6 +120,7 @@
       font-size: 14px;
       font-weight: bold;
       border-radius: 4px;
+      letter-spacing: 0.5px;
     }
 
     .text {
@@ -198,12 +198,11 @@
 </head>
 <body>
 
-  <!-- کارت اصلی ورود -->
+  <!-- Login Section -->
   <div class="card" id="loginSection">
-    <h1 style="font-size: 22px; margin-bottom: 6px; font-weight: bold;">ویس‌چت ماینکرفت</h1>
-    <p style="font-size: 13px; color: #a0aec0;">نام کاربری خود داخل سرور را وارد کنید</p>
+    <h1 style="font-size: 22px; margin-bottom: 6px; font-weight: bold; letter-spacing: -0.5px;">PROXIMITY VOICE CHAT</h1>
+    <p style="font-size: 13px; color: #a0aec0;">Enter your in-game Minecraft username</p>
     
-    <!-- کادر ورودی مدرن Uiverse همراه آیکون -->
     <div class="container">
       <label class="label">
         <input type="text" id="usernameInput" class="input" placeholder="Minecraft Username..." autocomplete="off" />
@@ -215,7 +214,7 @@
     </div>
 
     <button id="joinBtn" class="button">
-      <span class="text">ورود به ویس‌چت</span>
+      <span class="text">CONNECT</span>
       <span class="a t"></span>
       <span class="a r"></span>
       <span class="a b"></span>
@@ -223,20 +222,20 @@
     </button>
   </div>
 
-  <!-- کارت وضعیت بعد از ورود -->
+  <!-- Connected Session Section -->
   <div class="card" id="voiceSection" style="display: none;">
-    <h2 id="userGreeting" style="font-size: 18px; font-weight: bold; color: #4ade80;">متصل شدید</h2>
-    <div id="statusDiv" class="text-sm text-yellow-400 mt-2 font-mono">در انتظار دریافت مختصات از بازی...</div>
+    <h2 id="userGreeting" style="font-size: 18px; font-weight: bold; color: #4ade80;">Connected</h2>
+    <div id="statusDiv" class="text-xs text-yellow-400 mt-2 font-mono">Waiting for in-game coordinates...</div>
 
-    <div style="margin-top: 20px; text-align: right;">
-      <h3 style="font-size: 14px; color: #cbd5e1; margin-bottom: 8px;">افراد متصل:</h3>
-      <ul id="peersList" style="list-style: none; padding: 0; margin: 0; font-size: 13px; color: #94a3b8;">
-        <li>هیچ بازیکنی متصل نیست</li>
+    <div style="margin-top: 24px; text-align: left;">
+      <h3 style="font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #94a3b8; margin-bottom: 10px;">Connected Players:</h3>
+      <ul id="peersList" style="list-style: none; padding: 0; margin: 0; font-size: 13px; color: #cbd5e1; space-y-1">
+        <li class="text-neutral-500 italic">No players connected</li>
       </ul>
     </div>
   </div>
 
-  <!-- ترمینال لاگ‌ها -->
+  <!-- Terminal Logs -->
   <aside class="bg-black/90 backdrop-blur-md text-white p-5 rounded-xl w-full max-w-lg font-mono shadow-2xl border border-neutral-800 my-2 text-left" dir="ltr">
     <div class="flex justify-between items-center pb-2 border-b border-neutral-800">
       <div class="flex space-x-2">
@@ -248,11 +247,11 @@
     </div>
     
     <div id="logs" class="mt-3 text-xs leading-relaxed space-y-1 max-h-40 overflow-y-auto">
-      <p class="text-neutral-500">// آماده به کار...</p>
+      <p class="text-neutral-500">// Ready to connect...</p>
     </div>
   </aside>
 
-  <!-- اسکریپت اصلی و هندل کردن صدا -->
+  <!-- WebRTC & Socket Client Logic -->
   <script>
     const socket = io();
     let localStream = null;
@@ -287,7 +286,7 @@
 
     document.getElementById('joinBtn').addEventListener('click', async () => {
       const inputVal = document.getElementById('usernameInput').value.trim();
-      if (!inputVal) return alert('لطفاً نام بازیکن را وارد کنید!');
+      if (!inputVal) return alert('Please enter your Minecraft username!');
 
       username = inputVal.toLowerCase();
 
@@ -300,17 +299,17 @@
           }, 
           video: false 
         });
-        log('میکروفون متصل شد (حذف اکو فعال است)');
+        log('Microphone initialized (AEC & NS enabled)');
       } catch (err) {
-        alert('دسترسی به میکروفون رد شد!');
-        log('خطای میکروفون: ' + err.message);
+        alert('Microphone access denied!');
+        log('Microphone error: ' + err.message);
         return;
       }
 
       startKeepAlive();
       document.getElementById('loginSection').style.display = 'none';
       document.getElementById('voiceSection').style.display = 'block';
-      document.getElementById('userGreeting').innerText = `بازیکن: ${inputVal}`;
+      document.getElementById('userGreeting').innerText = `Player: ${inputVal}`;
 
       socket.emit('join_voice', { username: username });
     });
@@ -326,12 +325,12 @@
         }
       });
       if (list.children.length === 0) {
-        list.innerHTML = '<li>هیچ بازیکنی متصل نیست</li>';
+        list.innerHTML = '<li class="text-neutral-500 italic">No players connected</li>';
       }
     });
 
     socket.on('user_joined', async ({ id, username: remoteUser }) => {
-      log(`کاربر وارد شد: ${remoteUser}`);
+      log(`Player connected: ${remoteUser}`);
       const pc = createPeerConnection(id, remoteUser);
       peerConnections[id] = pc;
 
@@ -370,7 +369,7 @@
     });
 
     socket.on('user_left', ({ id, username: remoteUser }) => {
-      log(`کاربر خارج شد: ${remoteUser}`);
+      log(`Player disconnected: ${remoteUser}`);
       if (peerConnections[id]) {
         peerConnections[id].close();
         delete peerConnections[id];
@@ -391,7 +390,7 @@
       };
 
       pc.ontrack = (e) => {
-        log(`دریافت استریم صدا از: ${targetUsername}`);
+        log(`Receiving audio stream from: ${targetUsername}`);
         let audio = peersAudio[targetUsername];
         if (!audio) {
           audio = new Audio();
@@ -404,7 +403,7 @@
       return pc;
     }
 
-    // آپدیت موقعیت مکانی و مجاورت (Proximity)
+    // 3D Proximity distance calculation
     socket.on('positions_update', (positions) => {
       const lowerPositions = {};
       for (let k in positions) {
@@ -415,9 +414,9 @@
       const statusDiv = document.getElementById('statusDiv');
 
       if (myPos) {
-        statusDiv.innerText = `موقعیت: X:${Math.round(myPos.x)} Y:${Math.round(myPos.y)} Z:${Math.round(myPos.z)} (${myPos.world})`;
+        statusDiv.innerText = `Pos: X:${Math.round(myPos.x)} Y:${Math.round(myPos.y)} Z:${Math.round(myPos.z)} (${myPos.world})`;
       } else {
-        statusDiv.innerText = `در انتظار دریافت موقعیت شما از بازی...`;
+        statusDiv.innerText = `Waiting for player position...`;
       }
 
       for (const [targetName, audio] of Object.entries(peersAudio)) {
