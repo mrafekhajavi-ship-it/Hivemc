@@ -42,7 +42,7 @@
     .card {
       position: relative; z-index: 10;
       width: min(92%, 400px);
-      height: 310px; /* ارتفاع کل کادر رو کمی بیشتر کردیم که جا بشه */
+      min-height: 320px;
       padding: 25px 24px 20px 24px;
       display: flex;
       flex-direction: column;
@@ -59,7 +59,7 @@
       width: 100%;
     }
     .input-wrap {
-      width: 80%; /* عرض کادر نام کاربری */
+      width: 80%;
       margin: 0 auto 15px auto;
       padding: 1px; border-radius: 12px;
       background: #333; transition: 0.3s;
@@ -70,7 +70,7 @@
     }
     input {
       width: 100%; 
-      height: 48px; /* ارتفاع دلخواه برای کادر (می‌تونی کم و زیادش کنی مثلاً 55px) */
+      height: 48px;
       border: 0; outline: 0;
       border-radius: 11px; 
       padding: 0 15px; 
@@ -93,6 +93,37 @@
       background: #fff; color: #000; font-weight: 700;
     }
     @keyframes rotateBorder { to { transform: rotate(360deg); } }
+
+    /* استایل دکمه‌های کنترل صدا (میکروفون و هدست) */
+    .controls-container {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin-top: 15px;
+    }
+    .control-btn {
+      width: 50px;
+      height: 50px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      background: #111;
+      color: #fff;
+      font-size: 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: 0.2s ease;
+    }
+    .control-btn:hover {
+      background: #222;
+      border-color: rgba(255, 255, 255, 0.4);
+    }
+    .control-btn.muted {
+      background: #ef4444;
+      border-color: #dc2626;
+      color: #fff;
+    }
   </style>
 </head>
 <body>
@@ -106,6 +137,7 @@
       <p class="text-xs text-gray-400 mb-4">Talk directly to nearby players</p>
     </div>
 
+    <!-- بخش ورود به ویس -->
     <div id="login-box">
       <div class="input-wrap">
         <input id="username" type="text" placeholder="Enter Minecraft Username" autocomplete="off" />
@@ -116,26 +148,28 @@
       <p id="err" class="text-red-400 text-xs mt-2 hidden"></p>
     </div>
 
-    <div id="active-box" class="hidden p-4 rounded-xl bg-green-500/10 border border-green-500/30">
+    <!-- بخش بعد از اتصال موفق -->
+    <div id="active-box" class="hidden p-3 rounded-xl bg-green-500/10 border border-green-500/30">
       <p class="text-green-400 font-semibold mb-1">● Voice Connected</p>
       <p id="pos-info" class="text-xs text-gray-400">Waiting for coordinates...</p>
+      
+      <!-- دکمه‌های دیسکوردی قطع و وصل صدا -->
+      <div class="controls-container">
+        <button id="mic-btn" class="control-btn" onclick="toggleMic()" title="Mute/Unmute Microphone">
+          <i class="fa-solid fa-microphone" id="mic-icon"></i>
+        </button>
+        <button id="deafen-btn" class="control-btn" onclick="toggleDeafen()" title="Deafen/Undeafen Sound">
+          <i class="fa-solid fa-headphones" id="deafen-icon"></i>
+        </button>
+      </div>
     </div>
   </div>
-
-<!-- دکمه میکروفون (Mute/Unmute Mic) -->
-<button id="mic-btn" class="control-btn">
-  <i class="fa-solid fa-microphone" id="mic-icon"></i>
-</button>
-
-<!-- دکمه هدفون (Deafen/Undeafen Sound) -->
-<button id="deafen-btn" class="control-btn">
-  <i class="fa-solid fa-headphones" id="deafen-icon"></i>
-</button>
-
   
   <script>
     const socket = io();
     let localStream;
+    let isMicMuted = false;
+    let isDeafened = false;
 
     async function connectVoice() {
       const name = document.getElementById('username').value.trim();
@@ -154,6 +188,44 @@
         err.textContent = "Microphone access denied or unavailable";
         err.classList.remove('hidden');
       }
+    }
+
+    // تابع قطع و وصل کردن میکروفون
+    function toggleMic() {
+      if (!localStream) return;
+      isMicMuted = !isMicMuted;
+      localStream.getAudioTracks().forEach(track => {
+        track.enabled = !isMicMuted;
+      });
+
+      const btn = document.getElementById('mic-btn');
+      const icon = document.getElementById('mic-icon');
+      if (isMicMuted) {
+        btn.classList.add('muted');
+        icon.className = "fa-solid fa-microphone-slash";
+      } else {
+        btn.classList.remove('muted');
+        icon.className = "fa-solid fa-microphone";
+      }
+    }
+
+    // تابع قطع و وصل کردن کل صدای دریافتی (هدست)
+    function toggleDeafen() {
+      isDeafened = !isDeafened;
+      const btn = document.getElementById('deafen-btn');
+      const icon = document.getElementById('deafen-icon');
+      
+      // اگر هدست مات شود، خودبه‌خود میکروفون هم قطع میشود (مثل دیسکورد)
+      if (isDeafened) {
+        btn.classList.add('muted');
+        icon.className = "fa-solid fa-headphones-slash";
+        if (!isMicMuted) toggleMic(); // قطع میکروفون هنگام دیفن
+      } else {
+        btn.classList.remove('muted');
+        icon.className = "fa-solid fa-headphones";
+      }
+      
+      // اینجا می‌توانید اعمال قطع صدا روی المان‌های صوتی (Audio elements) را در آینده مدیریت کنید
     }
 
     socket.on('positions', (players) => {
