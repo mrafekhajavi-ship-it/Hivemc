@@ -1,5 +1,5 @@
 {
-  "name": "Hivemc",
+  "name": "hivemc",
   "version": "1.0.0",
   "description": "Larp Hivemc",
   "main": "server.js",
