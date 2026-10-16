@@ -243,7 +243,7 @@
     .badge-mvp { background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); }
 
     .rank-btn {
-      padding: 6px 14px;
+      padding: 8px 14px;
       border-radius: 8px;
       font-size: 12px;
       font-weight: 600;
@@ -311,7 +311,7 @@
     }
     @keyframes pulseDot { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
 
-    /* مدال خرید */
+    /* مدال خرید اتوماتیک */
     .modal-backdrop {
       display: none;
       position: fixed;
@@ -415,7 +415,7 @@
           <li><i class="fa-solid fa-check text-emerald-400 mr-1.5"></i> <span data-i18n="vip_f2">Fly in Lobby (/fly)</span></li>
           <li><i class="fa-solid fa-check text-emerald-400 mr-1.5"></i> <span data-i18n="vip_f3">+2 SetHome Limits</span></li>
         </ul>
-        <button onclick="openCheckout('VIP', '50,000 T')" class="rank-btn w-full bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40" data-i18n="btn_buy">
+        <button onclick="openBuyModal('VIP')" class="rank-btn w-full bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40" data-i18n="btn_buy">
           Purchase VIP
         </button>
       </div>
@@ -431,7 +431,7 @@
           <li><i class="fa-solid fa-check text-sky-400 mr-1.5"></i> <span data-i18n="vipplus_f2">Exclusive Death Particles</span></li>
           <li><i class="fa-solid fa-check text-sky-400 mr-1.5"></i> <span data-i18n="vipplus_f3">+5 SetHome Limits & Custom Pets</span></li>
         </ul>
-        <button onclick="openCheckout('VIP+', '90,000 T')" class="rank-btn w-full bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/40" data-i18n="btn_buy">
+        <button onclick="openBuyModal('VIP+')" class="rank-btn w-full bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/40" data-i18n="btn_buy">
           Purchase VIP+
         </button>
       </div>
@@ -447,7 +447,7 @@
           <li><i class="fa-solid fa-check text-amber-400 mr-1.5"></i> <span data-i18n="mvp_f2">Access to All Capes & Cosmetics</span></li>
           <li><i class="fa-solid fa-check text-amber-400 mr-1.5"></i> <span data-i18n="mvp_f3">Custom Nickname & RGB Chat</span></li>
         </ul>
-        <button onclick="openCheckout('MVP', '150,000 T')" class="rank-btn w-full bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40" data-i18n="btn_buy">
+        <button onclick="openBuyModal('MVP')" class="rank-btn w-full bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40" data-i18n="btn_buy">
           Purchase MVP
         </button>
       </div>
@@ -460,27 +460,27 @@
     </div>
   </div>
 
-  <!-- پنجره خرید رنک (Modal) -->
+  <!-- پنجره مودال خرید اتوماتیک رنک -->
   <div id="checkout-modal" class="modal-backdrop">
     <div class="bg-[#0f1118] border border-white/15 rounded-2xl p-6 w-full max-w-sm text-center relative shadow-2xl">
       <button onclick="closeCheckout()" class="absolute top-4 right-4 text-slate-400 hover:text-white">
         <i class="fa-solid fa-xmark text-lg"></i>
       </button>
       <div class="w-12 h-12 rounded-xl bg-sky-500/20 text-sky-400 flex items-center justify-center mx-auto mb-3">
-        <i class="fa-solid fa-cart-shopping text-xl"></i>
+        <i class="fa-solid fa-crown text-xl"></i>
       </div>
-      <h3 class="text-lg font-bold text-white mb-1" id="modal-rank-name">Rank Checkout</h3>
-      <p class="text-xs text-slate-400 mb-4" id="modal-rank-price">Price: 0 T</p>
+      <h3 class="text-lg font-bold text-white mb-1" id="modal-rank-name">Purchase Rank</h3>
+      <p class="text-xs text-slate-400 mb-4" data-i18n="modal_desc">Enter your Minecraft username to receive rank instantly.</p>
       
       <div class="text-left mb-4">
-        <label class="block text-xs text-slate-400 mb-1" data-i18n="lbl_gamertag">Minecraft Gamertag (Xbox Name):</label>
+        <label class="block text-xs text-slate-400 mb-1" data-i18n="lbl_gamertag">Minecraft Username / Gamertag:</label>
         <input type="text" id="gamertag-input" placeholder="e.g. Player123" class="w-full bg-black/60 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-sky-500">
       </div>
 
-      <a id="btn-modal-contact" href="https://t.me/" target="_blank" class="w-full block py-2.5 bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-sm rounded-xl transition mb-2" data-i18n="modal_submit">
-        Order via Support
-      </a>
-      <p class="text-[11px] text-slate-500" data-i18n="modal_note">Instant activation upon admin verification</p>
+      <button onclick="submitPurchase()" class="w-full py-2.5 bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-sm rounded-xl transition mb-2" data-i18n="modal_submit">
+        Apply Rank Now
+      </button>
+      <p id="modal-status" class="text-xs mt-2 font-medium"></p>
     </div>
   </div>
 
@@ -501,9 +501,9 @@
         quick_join: "Direct Play / Add to Game",
         ranks_title: "Server Ranks",
         ranks_desc: "Support Hivemc and unlock exclusive perks",
-        price_vip: "$1.99 / 50k T",
-        price_vipplus: "$3.49 / 90k T",
-        price_mvp: "$5.99 / 150k T",
+        price_vip: "50,000 T",
+        price_vipplus: "90,000 T",
+        price_mvp: "150,000 T",
         vip_f1: "[VIP] Chat Prefix & Tag",
         vip_f2: "Fly in Lobby (/fly)",
         vip_f3: "+2 SetHome Limits",
@@ -514,9 +514,9 @@
         mvp_f2: "Access to All Capes & Cosmetics",
         mvp_f3: "Custom Nickname & RGB Chat",
         btn_buy: "Purchase Rank",
-        lbl_gamertag: "Minecraft Gamertag (Xbox Name):",
-        modal_submit: "Order via Support",
-        modal_note: "Instant activation upon admin verification"
+        lbl_gamertag: "Minecraft Username / Gamertag:",
+        modal_desc: "Enter your Minecraft username to receive rank instantly.",
+        modal_submit: "Apply Rank Now"
       },
       fa: {
         tab_home: '<i class="fa-solid fa-server ml-1"></i> سرور',
@@ -546,13 +546,14 @@
         mvp_f2: "دسترسی به تمام شنل‌ها و کاستوم‌ها",
         mvp_f3: "تغییر نام دلخواه و چت رنگی RGB",
         btn_buy: "خرید این رنک",
-        lbl_gamertag: "گیمرتگ ماینکرفت (Xbox Name):",
-        modal_submit: "سفارش از طریق پشتیبانی",
-        modal_note: "فعال‌سازی سریع پس از تایید توسط ادمین"
+        lbl_gamertag: "نام کاربری / گیم‌تگ ماینکرفت:",
+        modal_desc: "نام کاربری خود را وارد کنید تا رنک بلافاصله اعمال شود.",
+        modal_submit: "اعمال خودکار رنک"
       }
     };
 
     let currentLang = localStorage.getItem('hivemc_lang') || 'en';
+    let selectedRank = '';
 
     function setLanguage(lang) {
       currentLang = lang;
@@ -579,14 +580,51 @@
       document.getElementById('tab-ranks').classList.toggle('active', !isHome);
     }
 
-    function openCheckout(rankName, price) {
+    function openBuyModal(rankName) {
+      selectedRank = rankName;
       document.getElementById('modal-rank-name').innerText = `Purchase ${rankName}`;
-      document.getElementById('modal-rank-price').innerText = `Price: ${price}`;
+      document.getElementById('gamertag-input').value = '';
+      document.getElementById('modal-status').innerText = '';
       document.getElementById('checkout-modal').classList.add('show');
     }
 
     function closeCheckout() {
       document.getElementById('checkout-modal').classList.remove('show');
+    }
+
+    async function submitPurchase() {
+      const gamertag = document.getElementById('gamertag-input').value.trim();
+      const statusEl = document.getElementById('modal-status');
+
+      if (!gamertag) {
+        statusEl.style.color = '#ef4444';
+        statusEl.innerText = (currentLang === 'fa') ? 'لطفاً نام کاربری خود را وارد کنید!' : 'Please enter your username!';
+        return;
+      }
+
+      statusEl.style.color = '#f59e0b';
+      statusEl.innerText = (currentLang === 'fa') ? 'در حال اعمال رنک روی سرور...' : 'Applying rank to server...';
+
+      try {
+        const res = await fetch('/api/buy-rank', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ gamertag, rank: selectedRank })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          statusEl.style.color = '#10b981';
+          statusEl.innerText = data.message;
+          setTimeout(() => { closeCheckout(); }, 3000);
+        } else {
+          statusEl.style.color = '#ef4444';
+          statusEl.innerText = data.message || 'Error occurred.';
+        }
+      } catch (err) {
+        statusEl.style.color = '#ef4444';
+        statusEl.innerText = (currentLang === 'fa') ? 'خطا در ارتباط با سرور سایت.' : 'Server connection error.';
+      }
     }
 
     async function updateServerStatus() {
@@ -600,20 +638,16 @@
 
         if (data.online) {
           dot.className = "status-dot online";
-          statusText.setAttribute('data-i18n', 'online');
           statusText.innerHTML = translations[currentLang].online;
           playerCount.innerText = `${data.currentPlayers} / ${data.maxPlayers}`;
         } else {
           dot.className = "status-dot offline";
-          statusText.setAttribute('data-i18n', 'offline');
           statusText.innerHTML = translations[currentLang].offline;
           playerCount.innerText = "0 / 0";
         }
       } catch (err) {
         document.getElementById('server-dot').className = "status-dot offline";
-        const statusText = document.getElementById('server-status-text');
-        statusText.setAttribute('data-i18n', 'offline');
-        statusText.innerHTML = translations[currentLang].offline;
+        document.getElementById('server-status-text').innerHTML = translations[currentLang].offline;
       }
     }
 
@@ -622,9 +656,7 @@
       const btnText = document.getElementById('btn-copy-text');
       const originalHtml = translations[currentLang].btn_copy;
       btnText.innerHTML = translations[currentLang].copied;
-      setTimeout(() => {
-        btnText.innerHTML = originalHtml;
-      }, 2500);
+      setTimeout(() => { btnText.innerHTML = originalHtml; }, 2500);
     }
 
     setLanguage(currentLang);
