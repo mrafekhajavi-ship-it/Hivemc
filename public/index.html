@@ -215,17 +215,14 @@
       const btn = document.getElementById('deafen-btn');
       const icon = document.getElementById('deafen-icon');
       
-      // اگر هدست مات شود، خودبه‌خود میکروفون هم قطع میشود (مثل دیسکورد)
       if (isDeafened) {
         btn.classList.add('muted');
-        icon.className = "fa-solid fa-headphones-slash";
-        if (!isMicMuted) toggleMic(); // قطع میکروفون هنگام دیفن
+        icon.className = "fa-solid fa-headphones-slash"; // اصلاح شد تا آیکون خط‌خورده نمایش داده شود
+        if (!isMicMuted) toggleMic(); // قطع میکروفون هنگام دیفن (مثل دیسکورد)
       } else {
         btn.classList.remove('muted');
-        icon.className = "fa-solid fa-headphones";
+        icon.className = "fa-solid fa-headphones"; // بازگشت به آیکون اصلی هدست
       }
-      
-      // اینجا می‌توانید اعمال قطع صدا روی المان‌های صوتی (Audio elements) را در آینده مدیریت کنید
     }
 
     socket.on('positions', (players) => {
