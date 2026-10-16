@@ -143,7 +143,62 @@
       right: var(--t);
       height: var(--w);
     }
+/* From Uiverse.io by nazar-gavrylyk */ 
+.container {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
 
+.label {
+  position: relative;
+  display: flex;
+  width: 250px;
+  border-radius: 6px;
+  border: 2px solid #373737;
+  padding: 15px 8px 15px 10px;
+  text-align: left;
+  transition: all 0.3s ease; /* برای نرم شدن افکت */
+}
+
+/* تغییر رنگ کادر به سفید موقع کلیک داخل فرم */
+.label:focus-within {
+  border-color: #ffffff;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.4); /* افکت نور سفید ملایم */
+}
+
+.label .icon {
+  position: absolute;
+  top: 53%;
+  right: 0;
+  transform: translate(-50%, -50%);
+  transition: all 0.3s ease;
+  color: #c5c5c5;
+}
+
+/* سفید شدن آیکون هنگام کلیک */
+.label:focus-within .icon {
+  color: #ffffff;
+}
+
+.label .input {
+  background-color: transparent;
+  outline: none;
+  border: none;
+  color: #c5c5c5;
+  font-size: 16px;
+  width: 100%;
+}
+
+/* روشن‌تر شدن رنگ متن موقع نوشتن */
+.label .input:focus {
+  color: #ffffff;
+}
+
+    
   </style>
 </head>
 <body>
