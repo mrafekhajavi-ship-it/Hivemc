@@ -56,14 +56,14 @@ app.get('/api/server-status', async (req, res) => {
 
 // مسیر خرید رنک و اجرای RCON (متصل به RankSystem)
 app.post('/api/buy-rank', async (req, res) => {
-    const { username, rank } = req.body;
+    let { username, rank } = req.body;
 
-    const validRanks = ['ultra', 'Elite', 'Legend'];
-    if (!username || !rank || !validRanks.includes(rank)) {
+    if (!username || !rank) {
         return res.status(400).json({ success: false, message: 'Invalid username or rank selected.' });
     }
 
     const cleanUsername = username.replace(/[^a-zA-Z0-9_ ]/g, '').trim();
+    const cleanRank = rank.trim(); // هر رنکی که از سایت بیاید را بدون محدودیت قبول می‌کند
 
     try {
         const rcon = await Rcon.connect({
@@ -74,17 +74,18 @@ app.post('/api/buy-rank', async (req, res) => {
         });
 
         // اجرای دستور تنظیم رنک در RankSystem
-        const response = await rcon.send(`setrank "${cleanUsername}" ${rank}`);
+        const response = await rcon.send(`setrank "${cleanUsername}" ${cleanRank}`);
         await rcon.end();
 
         console.log(`RCON Response: ${response}`);
-        return res.json({ success: true, message: `Rank ${rank} was successfully applied to ${cleanUsername}!` });
+        return res.json({ success: true, message: `Rank ${cleanRank} was successfully applied to ${cleanUsername}!` });
 
     } catch (err) {
         console.error('RCON Error:', err);
         return res.status(500).json({ success: false, message: 'Server connection error (RCON failed).' });
     }
 });
+
 
 
 // اجرای سرور
