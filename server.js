@@ -1,48 +1,110 @@
-// در فایل server.js، بخش مربوط به درخواست خرید رنک:
-app.post('/api/buy-rank', async (req, res) => {
-  const { gamertag, rank } = req.body;
+const express = require('express');
+const path = require('path');
+const bedrock = require('bedrock-protocol');
 
-  // اعتبارسنجی نام کاربری و نام رنک‌های مجاز
+const app = express();
+
+app.use(express.json());
+app.use(express.static(path.join(__dirname, 'public')));
+
+// تنظیمات سرور ماینکرفت
+const MINECRAFT_HOST = 'sv2.tgmc.ir';
+const MINECRAFT_PORT = 27235;
+
+// کلید امنیتی ارتباط بین پلاگین پاکت‌ماین و سایت
+const SECRET_KEY = "HIVE_SECRET_2026";
+
+// صف نگهداری دستورات
+let commandQueue = [];
+
+// کش وضعیت آنلاین سرور
+let cachedStatus = { online: false, currentPlayers: 0, maxPlayers: 0 };
+let lastPingTime = 0;
+
+async function fetchServerStatus() {
+  const now = Date.now();
+  if (now - lastPingTime < 5000) {
+    return cachedStatus;
+  }
+
+  try {
+    const res = await bedrock.ping({
+      host: MINECRAFT_HOST,
+      port: MINECRAFT_PORT,
+      timeout: 5000
+    });
+
+    cachedStatus = {
+      online: true,
+      currentPlayers: parseInt(res.playersOnline) || 0,
+      maxPlayers: parseInt(res.maxPlayers) || 20
+    };
+    lastPingTime = now;
+  } catch (err) {
+    console.error('Bedrock Ping Error:', err.message);
+    cachedStatus = { online: false, currentPlayers: 0, maxPlayers: 0 };
+    lastPingTime = now;
+  }
+
+  return cachedStatus;
+}
+
+// ۱. دریافت وضعیت سرور برای نمایش در فرانت‌اند
+app.get('/api/status', async (req, res) => {
+  const status = await fetchServerStatus();
+  res.json(status);
+});
+
+// ۲. پردازش خرید رنک از سایت (هم برای buy و هم buy-rank)
+const handleRankPurchase = (req, res) => {
+  const gamertag = req.body.gamertag || req.body.username;
+  const rank = req.body.rank;
+
+  // اعتبارسنجی نام کاربری
   if (!gamertag || typeof gamertag !== 'string' || gamertag.length > 16) {
     return res.status(400).json({ success: false, message: 'Invalid username.' });
   }
 
-  // نام رنک‌های مجاز مطابق دکمه‌های سایت
+  // اعتبارسنجی رنک‌های مجاز
   const allowedRanks = ['Elite', 'ultra', 'Legend'];
   const cleanRank = allowedRanks.find(r => r.toLowerCase() === (rank || '').toLowerCase());
-  
+
   if (!cleanRank) {
     return res.status(400).json({ success: false, message: 'Invalid rank selected.' });
   }
 
-  // پاکسازی نام کاربری برای جلوگیری از کاراکترهای اضافی
+  // پاکسازی کاراکترهای اضافه
   const cleanUsername = gamertag.replace(/[^a-zA-Z0-9_]/g, '');
 
-  try {
-    const rcon = new Rcon({
-      host: process.env.RCON_HOST || 'sv2.tgmc.ir',
-      port: parseInt(process.env.RCON_PORT || '19132'),
-      password: process.env.RCON_PASSWORD
-    });
+  // ساخت دستور دقیق کنسول و اضافه به صف
+  const command = `ranks setrank "${cleanUsername}" ${cleanRank} 30d`;
+  commandQueue.push({ id: Date.now(), cmd: command });
 
-    await rcon.connect();
+  console.log(`[Queue] Added command: ${command}`);
 
-    // ارسال دستور دقیق طبق تست شما با مدت ۳۰ روز
-    const command = `ranks setrank "${cleanUsername}" ${cleanRank} 30d`;
-    const rconResponse = await rcon.send(command);
-    
-    await rcon.end();
+  return res.json({
+    success: true,
+    message: `درخواست خرید رنک ${cleanRank} برای ${cleanUsername} ثبت شد و به زودی اعمال می‌شود.`
+  });
+};
 
-    return res.json({ 
-      success: true, 
-      message: `Rank ${cleanRank} successfully applied to ${cleanUsername} for 30 days!` 
-    });
+app.post('/api/buy-rank', handleRankPurchase);
+app.post('/api/buy', handleRankPurchase);
 
-  } catch (error) {
-    console.error('RCON Error:', error);
-    return res.status(500).json({ 
-      success: false, 
-      message: 'Failed to connect to server console. Make sure player is online!' 
-    });
+// ۳. مسیری که پلاگین پاکت‌ماین دستورات را تحویل می‌گیرد
+app.get('/api/get-commands', (req, res) => {
+  const authHeader = req.headers['authorization'];
+  if (authHeader !== SECRET_KEY) {
+    return res.status(403).json({ error: 'Unauthorized' });
   }
+
+  const pending = [...commandQueue];
+  commandQueue = []; // بعد از تحویل به سرور، صف خالی می‌شود
+  res.json({ commands: pending });
+});
+
+// پورت سرور در Render
+const PORT = process.env.PORT || 10000;
+app.listen(PORT, () => {
+  console.log(`Hivemc Server running on port ${PORT}`);
 });
