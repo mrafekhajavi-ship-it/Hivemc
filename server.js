@@ -16,7 +16,7 @@ let serverPlayers = 0;
 let serverMaxPlayers = 20;
 
 // ۱. وضعیت سرور برای سایت
-app.get('/api/status', (req, res) => {
+app.get('/api/server-status', (req, res) => {
   const now = Date.now();
   // اگر در ۶۰ ثانیه گذشته سرور یا پلاگین پاسخ داده باشد، آنلاین نشان داده می‌شود
   const isOnline = (now - lastPluginHeartbeat) < 60000;
