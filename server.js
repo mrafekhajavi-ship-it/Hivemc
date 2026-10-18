@@ -1,32 +1,42 @@
-// یک آرایه برای نگهداری صف دستورات
-let commandQueue = [];
+const express = require('express');
+const path = require('path');
 
-// یک رمز محرمانه بین سایت و پلاگین شما (برای امنیت)
+const app = express();
+
+app.use(express.json());
+app.use(express.static(path.join(__dirname, 'public')));
+
+// صف نگهداری دستورات برای سرور ماینکرفت
+let commandQueue = [];
 const SECRET_KEY = "HIVE_SECRET_2026";
 
-// مسیر خرید در سایت: وقتی کاربر دکمه خرید را می‌زند
+// مسیر ثبت خرید از سایت
 app.post('/api/buy', (req, res) => {
   const { username, rank } = req.body;
   if (!username || !rank) {
     return res.status(400).json({ success: false, message: 'Invalid data' });
   }
 
-  // دستور پاکت‌ماین را آماده می‌کنیم و در صف می‌گذاریم
   const cmd = `ranks setrank "${username}" ${rank} 30d`;
   commandQueue.push({ id: Date.now(), cmd });
 
-  return res.json({ success: true, message: 'درخواست با موفقیت ثبت شد و به زودی روی سرور اعمال می‌شود.' });
+  return res.json({ success: true, message: 'درخواست با موفقیت ثبت شد.' });
 });
 
-// این آدرس را فقط پلاگین ماینکرفت فراخوانی می‌کند
+// مسیر دریافت دستورات توسط پلاگین ماینکرفت
 app.get('/api/get-commands', (req, res) => {
   const authHeader = req.headers['authorization'];
   if (authHeader !== SECRET_KEY) {
     return res.status(403).json({ error: 'Unauthorized' });
   }
 
-  // ارسال دستورات به پلاگین و خالی کردن صف
   const pending = [...commandQueue];
-  commandQueue = [];
+  commandQueue = []; // خالی کردن صف پس از دریافت توسط سرور
   res.json({ commands: pending });
+});
+
+// پورت سرور در رندر
+const PORT = process.env.PORT || 10000;
+app.listen(PORT, () => {
+  console.log(`Hivemc Server running on port ${PORT}`);
 });
