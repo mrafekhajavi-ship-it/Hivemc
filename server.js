@@ -1,71 +1,42 @@
 const express = require('express');
 const path = require('path');
-const bedrock = require('bedrock-protocol');
 
 const app = express();
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// تنظیمات سرور ماینکرفت
-const MINECRAFT_HOST = 'sv2.tgmc.ir';
-const MINECRAFT_PORT = 27235;
-
-// کلید امنیتی ارتباط بین پلاگین پاکت‌ماین و سایت
+// تنظیمات
 const SECRET_KEY = "HIVE_SECRET_2026";
-
-// صف نگهداری دستورات
 let commandQueue = [];
 
-// کش وضعیت آنلاین سرور
-let cachedStatus = { online: false, currentPlayers: 0, maxPlayers: 0 };
-let lastPingTime = 0;
+// متغیرهای بررسی آنلاین بودن هوشمند بر اساس ارتباط مستقیم پلاگین
+let lastPluginHeartbeat = Date.now(); // در لحظه اول آنلاین فرض شود
+let serverPlayers = 0;
+let serverMaxPlayers = 20;
 
-async function fetchServerStatus() {
+// ۱. وضعیت سرور برای سایت
+app.get('/api/status', (req, res) => {
   const now = Date.now();
-  if (now - lastPingTime < 5000) {
-    return cachedStatus;
-  }
+  // اگر در ۶۰ ثانیه گذشته سرور یا پلاگین پاسخ داده باشد، آنلاین نشان داده می‌شود
+  const isOnline = (now - lastPluginHeartbeat) < 60000;
 
-  try {
-    const res = await bedrock.ping({
-      host: MINECRAFT_HOST,
-      port: MINECRAFT_PORT,
-      timeout: 5000
-    });
-
-    cachedStatus = {
-      online: true,
-      currentPlayers: parseInt(res.playersOnline) || 0,
-      maxPlayers: parseInt(res.maxPlayers) || 20
-    };
-    lastPingTime = now;
-  } catch (err) {
-    console.error('Bedrock Ping Error:', err.message);
-    cachedStatus = { online: false, currentPlayers: 0, maxPlayers: 0 };
-    lastPingTime = now;
-  }
-
-  return cachedStatus;
-}
-
-// ۱. دریافت وضعیت سرور برای نمایش در فرانت‌اند
-app.get('/api/status', async (req, res) => {
-  const status = await fetchServerStatus();
-  res.json(status);
+  res.json({
+    online: isOnline,
+    currentPlayers: isOnline ? serverPlayers : 0,
+    maxPlayers: serverMaxPlayers
+  });
 });
 
-// ۲. پردازش خرید رنک از سایت (هم برای buy و هم buy-rank)
+// ۲. پردازش خرید رنک
 const handleRankPurchase = (req, res) => {
   const gamertag = req.body.gamertag || req.body.username;
   const rank = req.body.rank;
 
-  // اعتبارسنجی نام کاربری
   if (!gamertag || typeof gamertag !== 'string' || gamertag.length > 16) {
     return res.status(400).json({ success: false, message: 'Invalid username.' });
   }
 
-  // اعتبارسنجی رنک‌های مجاز
   const allowedRanks = ['Elite', 'ultra', 'Legend'];
   const cleanRank = allowedRanks.find(r => r.toLowerCase() === (rank || '').toLowerCase());
 
@@ -73,37 +44,42 @@ const handleRankPurchase = (req, res) => {
     return res.status(400).json({ success: false, message: 'Invalid rank selected.' });
   }
 
-  // پاکسازی کاراکترهای اضافه
   const cleanUsername = gamertag.replace(/[^a-zA-Z0-9_]/g, '');
-
-  // ساخت دستور دقیق کنسول و اضافه به صف
   const command = `ranks setrank "${cleanUsername}" ${cleanRank} 30d`;
+  
   commandQueue.push({ id: Date.now(), cmd: command });
-
   console.log(`[Queue] Added command: ${command}`);
 
   return res.json({
     success: true,
-    message: `درخواست خرید رنک ${cleanRank} برای ${cleanUsername} ثبت شد و به زودی اعمال می‌شود.`
+    message: `درخواست خرید رنک ${cleanRank} برای ${cleanUsername} ثبت شد.`
   });
 };
 
 app.post('/api/buy-rank', handleRankPurchase);
 app.post('/api/buy', handleRankPurchase);
 
-// ۳. مسیری که پلاگین پاکت‌ماین دستورات را تحویل می‌گیرد
+// ۳. مسیری که سرور ماینکرفت با سایت تماس می‌گیرد
 app.get('/api/get-commands', (req, res) => {
   const authHeader = req.headers['authorization'];
   if (authHeader !== SECRET_KEY) {
     return res.status(403).json({ error: 'Unauthorized' });
   }
 
+  // هر بار که پلاگین سرور به این آدرس سر می‌زند، یعنی سرور روشن است!
+  lastPluginHeartbeat = Date.now();
+
+  // در صورت ارسال تعداد پلیرها از پلاگین، به‌روزرسانی شود
+  if (req.query.online) {
+    serverPlayers = parseInt(req.query.online) || 0;
+  }
+
   const pending = [...commandQueue];
-  commandQueue = []; // بعد از تحویل به سرور، صف خالی می‌شود
+  commandQueue = [];
   res.json({ commands: pending });
 });
 
-// پورت سرور در Render
+// پورت اجرایی روی Render
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log(`Hivemc Server running on port ${PORT}`);
