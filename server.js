@@ -7,19 +7,19 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // تنظیمات
-const SECRET_KEY = "HIVE_SECRET_2026";
+const SECRET_KEY = "*******";
 let commandQueue = [];
 
-// متغیرهای بررسی آنلاین بودن هوشمند بر اساس ارتباط مستقیم پلاگین
-let lastPluginHeartbeat = Date.now(); // در لحظه اول آنلاین فرض شود
+// مقدار اولیه 0 تا در صورت خاموش بودن سرور ماینکرفت آنلاین الکی نشان ندهد
+let lastPluginHeartbeat = 0;
 let serverPlayers = 0;
 let serverMaxPlayers = 20;
 
 // ۱. وضعیت سرور برای سایت
 app.get('/api/server-status', (req, res) => {
   const now = Date.now();
-  // اگر در ۶۰ ثانیه گذشته سرور یا پلاگین پاسخ داده باشد، آنلاین نشان داده می‌شود
-  const isOnline = (now - lastPluginHeartbeat) < 60000;
+  // اگر در ۱۵ ثانیه گذشته پلاگین ریکوئست داده باشد سرور آنلاین است
+  const isOnline = (now - lastPluginHeartbeat) < 15000;
 
   res.json({
     online: isOnline,
@@ -66,10 +66,9 @@ app.get('/api/get-commands', (req, res) => {
     return res.status(403).json({ error: 'Unauthorized' });
   }
 
-  // هر بار که پلاگین سرور به این آدرس سر می‌زند، یعنی سرور روشن است!
+  // هر بار که پلاگین تماس گرفت، تایم لایو ثبت می‌شود
   lastPluginHeartbeat = Date.now();
 
-  // در صورت ارسال تعداد پلیرها از پلاگین، به‌روزرسانی شود
   if (req.query.online) {
     serverPlayers = parseInt(req.query.online) || 0;
   }
